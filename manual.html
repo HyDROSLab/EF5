@@ -1,0 +1,572 @@
+<html>
+	<head>
+		<title>EF5 User Manual</title>
+		<style type="text/css">
+		body { font-face: Georgia; width: 90%; }
+		#header { text-align: center; }
+		#toc ol ol li { list-style-type: lower-alpha; }
+		#contents li { font-size: 16pt; font-weight: bold; }
+		#contents ol ol li {font-size: 13pt; font-weight: bold; list-style-type: lower-alpha; }
+		pre {background-color: #dadada; padding: 7px; margin-bottom: 0; width: 700px; border: 1px solid #aaaaaa; }
+		.prec {font-style: italic; font-size: smaller; margin-top: 0;}
+		.pree { background-color: #daffda; padding: 7px; margin-bottom: 0; width: 400px; }
+		.valuec {background-color: #dadaff; padding: 3px; margin: 0; width: 95%;}
+		.namec {font-weight: bold; font-style: italic; }
+		</style>
+	</head>
+	<body>
+		<div id="header">
+			<h1>Ensemble Framework For Flash Flood Forecasting (EF5)</h1>
+			Version 1.0 (July, 2016)
+		</div>
+		<div id="toc">
+			<h3>Table of Contents</h3>
+			<ol>
+				<li><a href="#about">About EF5</a></li>
+				<li>Hydrologic Water Balance Models
+					<ol>
+						<li><a href="#crest">CREST</a></li>
+						<li><a href="#sac">SAC-SMA</a></li>
+            <li><a href="#hp">HP</a></li>
+					</ol>
+				</li>
+        <li>Routing Models
+          <ol>
+            <li><a href="#lr">Linear Reservior</a></li>
+            <li><a href="#kw">Kinematic Wave</a></li>
+          </ol>
+        </li>
+        <li>Snow Melt Models
+          <ol>
+            <li><a href="#snow17">Snow-17</a></li>
+          </ol>
+        </li>
+        <li>Inundation Models
+          <ol>
+            <li><a href="#si">Simple Inundation</a></li>
+          </ol>
+        </li>
+				<li><a href="#compile">Compiling EF5</a></li>
+				<li><a href="#config">Configuration File</a>
+					<ol>
+						<li><a href="#basic">Basic Information</a></li>
+						<li><a href="#precip">Precipitation Information</a></li>
+						<li><a href="#pet">Potentional Evapotranspiration Information</a></li>
+						<li><a href="#gauge">Gauge Locations</a></li>
+						<li><a href="#basin">Basins</a></li>
+						<li><a href="#param">Parameter Sets</a>
+							<ol>
+								<li><a href="#paramcrest">CREST</a></li>
+								<li><a href="#paramsac">SAC-SMA</a></li>
+                <li><a href="#paramhp">HP</a></li>
+                <li><a href="#paramlr">Linear Reservoir</a></li>
+                <li><a href="#paramkw">Kinematic Wave</a></li>
+                <li><a href="#paramsnow17">Snow-17</a></li>
+                <li><a href="#paramsi">Simple Inundation</a></li>
+							</ol>
+						</li>
+						<li><a href="#task">Tasks</a></li>
+						<li><a href="#execute">Execute Block</a></li>
+					</ol>
+				</li>
+				<li><a href="#run">Running EF5</a></li>
+				<li><a href="#cali">Calibrating the Models</a></li>
+				<li>Appendix
+					<ol>
+						<li><a href="#cconfig">Complete Sample Configuration File</a></li>
+					</ol>
+				</li>
+			</ol>	
+		</div>
+		<div id="contents">
+			<ol>
+				<li><a name="about">About EF5</a></li>
+				<p>EF5 is designed to facilitate creation of ensemble forecasts for flash flood prediction. As such it will incorporate multi-model support while maintaining a single set of input data. Currently the only supported model is the Coupled Routing and Excess Storage (CREST) hydrologic model. Additionally, EF5 was designed with utilization of parallel computing in mind. Presently portions of CREST are optimized to take advantage of multi-core computing through the use of OpenMP.</p>
+				<li>Hydrologic Water Balance Models</li>
+					<ol>
+						<li><a name="crest">CREST</a></li>
+						<p>The Coupled Routing and Excess STorage (CREST) distributed hydrological model is a hybrid modeling strategy that was recently developed by the University of Oklahoma (<a href="http://hydro.ou.edu">http://hydro.ou.edu</a>) and NASA SERVIR Project Team (<a href="http://www.servir.net">www.servir.net</a>). CREST simulates the spatiotemporal variation of water and energy fluxes and storages on a regular grid with the grid cell resolution being user-defined, thereby enabling global- and regional-scale applications. The scalability of CREST simulations is accomplished through sub-grid scale representation of soil moisture storage capacity (using a variable infiltration curve) and runoff generation processes (using linear reservoirs).  The CREST model was initially developed to provide online global flood predictions with relatively coarse resolution, but it is also applicable at small scales, such as single basins. The CREST Model can be forced by gridded potential evapotranspiration and precipitation datasets such as, satellite-based precipitation estimates, gridded rain gauge observations, remote sensing platforms such as weather radar, and quantitative precipitation forecasts from numerical weather prediction models.  The representation of the primary water fluxes such as infiltration and routing are closely related to the spatially variable land surface characteristics (i.e., vegetation, soil type, and topography).  The runoff generation component and routing scheme are coupled, thus providing realistic interactions between atmospheric, land surface, and subsurface water.
+						<br /><br />More detailed information about CREST can be found in the following publication:<br /><a href="http://dx.doi.org/10.1080/02626667.2010.543087">Wang, J., Y. Hong, L. Li, J. J. Gourley, S. I. Khan, K. K. Yilmaz, R. F. Adler, F. S. Policelli, S. Habib, D. Irwin, A. S. Limaye, T. Korme, and L. Okello, 2011:  The coupled routing and excess storage (CREST) distributed hydrological model. <em>Hydrol. Sci. Journal</em>, <strong>56</strong>, 84-98, doi: 10.1080/02626667.2010.543087.</a>
+						</p>
+						<li><a name="sac">SAC-SMA</a></li>
+						<p>The Sacramento Soil Moisture Accounting (SAC-SMA) Model was developed by the U.S. National Weather Service with the goal of parameterizing soil moisture characteristics in a fashion that would 1) logically distribute applied moisture in various depths and energy states in the soil 2) have rational percolation characteristics 3) allow an effective simulation of streamflow.
+              <br /><br />More detailed information about SAC-SMA can be found online at <a href="http://www.nws.noaa.gov/oh/hrl/nwsrfs/users_manual/part2/_pdf/23sacsma.pdf"> U.S. NWS SAC-SMA algorithm description</a></p>
+            <li><a name="hp">HP</a></li>
+            <p>The Hydrophobic (HP) water balance model features an entirely impervious surface where all rainfall is transformed into surface runoff.</p>
+					</ol>
+          <li>Routing Models</li>
+          <ol>
+            <li><a name="lr">Linear Reservoir</a></li>
+            <p>
+		The linear reservoir routing is adapted from the CREST implementation. There are two reservoirs, one for overland/surface runoff and one for subsurface runoff. 
+            </p>
+            <li><a name="kw">Kinematic Wave</a></li>
+            <p>Kinematic wave routing is a simplified approximation of the Barré de Saint-Venant equations developed in 1871. Kinematic wave routing assumes the gravity force and friction force are equal and cancel while neglecting the acceleration terms.</p>
+          </ol>
+          <li>Snow Melt Models</li>
+          <ol>
+            <li><a name="snow17">Snow-17</a></li>
+            <p>Snow-17 is a temperature index based snow melt module widely used by the U.S. NWS.
+            </p>
+          </ol>
+          <li>Inundation Models</li>
+          <ol>
+            <li><a name="si">Simple Inundation</a></li>
+            <p>
+            </p>
+          </ol>
+				<li><a name="compile">Compiling EF5</a></li>
+					<p>
+						EF5 makes use of the TIFF and GEOTIFF libraries for use as a raster format. You can obtain binaries or source code and compilation documentation from: </br>
+						Compiling EF5 can be accomplished in 3 steps:<br />
+						1. This step is only needed if you are a developer and are adding files to the Makefile.am <pre class="pree">autoreconf --force --install</pre><br />
+						2. This sets up the system, if you have a path where you would like to install the files then use ./configure --prefix=/path/to/someplace <pre class="pree">./configure</pre><br />
+						3. This step actually compiles ef5 and generates the binary <pre class="pree">make CXXFLAGS="-O3 -fopenmp"</pre><br />
+						Upon successful compilation there will be a binary called "ef5" in the "bin" directory.
+					</p>
+				<li><a name="config">Configuration File</a></li>
+					<p>The configuration file specifies all of the user changeable settings for EF5. Information in this file controls the input forcings, output options, run methods, etc.</p>
+					<p>In general the configuration file is case <strong>insensitive</strong>. The only exception is file paths when working on case sensitive file systems such as those typically found in Linux/Unix.</p>
+					<p>The configuration file supports three different styles of comments. The three styles are bash (#), C (/**/) and C++ (//).</p>
+<pre>#All variables/names/etc with the exception of
+#file paths are case insensitive
+//Multiple comment types are supported
+/*
+   Including multi-line C-style comments
+ */
+</pre><p class="prec">Example of the different comment styles.</p>
+					<ol>
+						<li><a name="basic">Basic Information</a></li>
+						<p>The basic section of the configuration file specifies the digital elevation model (DEM), drainage direction map (DDM), and flow accumulation map (FAM) files.<br />
+<pre>
+[Basic]
+DEM=/EF5Demo/FF/basic/DEM.asc
+DDM=/EF5Demo/FF/basic/DDM.asc
+FAM=/EF5Demo/FF/basic/FAM.asc
+PROJ=laea
+ESRIDDM=true
+SELFFAM=true
+</pre><p class="prec">Example Basic Block</p>
+<span class="namec">DEM:</span> Specifies the location and file name of the DEM grid in ESRI ascii or float32 geotiff format.<br />
+<span class="namec">DDM:</span> Specifies the location and file name of the DDM grid in ESRI ascii or float32 geotiff format.<br />
+<span class="namec">FAM:</span> Specifies the location and file name of the FAM grid in ESRI ascii or float32 geotiff format.<br />
+<span class="namec">PROJ:</span> Specifies the projection that the model will be expecting for input files. Possible values are:<br />
+<pre class="valuec">
+<em>Geographic</em>: Standard geographic projection
+<em>LAEA</em>: Lambert Azimuthal Equal Area projection with the standard parallel at 45.0 and the central meridian at -100.0. 
+</pre>
+<span class="namec">ESRIDDM:</span> Specifies if the DDM is in ESRI format or TauDEM format. Possible values are:<br />
+<pre class="valuec">
+<em>true</em>: The directions in the DDM are specified as <table border="1" width="85px" style="text-align: center"><tr><td>32</td><td>64</td><td>128</td></tr><tr><td>16</td><td>&nbsp;</td><td>1</td></tr><tr><td>8</td><td>4</td><td>2</td></tr></table> 
+<em>false</em>: The directions in the DDM are specified as <table border="1" width="85px" style="text-align: center"><tr><td>4</td><td>3</td><td>2</td></tr><tr><td>5</td><td>&nbsp;</td><td>1</td></tr><tr><td>6</td><td>7</td><td>8</td></tr></table>
+</pre>
+<span class="namec">SELFFAM:</span> Specifies if the flow accumulation map includes the current grid cell in the flow count. Possible values are:<br />
+<pre class="valuec">
+<em>true</em>: The lowest flow accumulation value for any grid cell will be 1.
+<em>false</em>: The lowest flow accumulation value for any grid cell will be 0.
+</pre>
+</p>
+					<li><a name="precip">Precipitation Information</a></li>
+					<p>The precipitation forcing section specifies the information necessary to adequately describe the precipitation product that the model will ingest.<br />
+<pre>
+[PrecipForcing Q2Precip]
+TYPE=BIF
+UNIT=mm/h
+FREQ=5u
+LOC=/EF5Demo/FF/precip
+NAME=Q2_YYYYMMDDHHUU.bif
+</pre><p class="prec">Example PrecipForcing Block</p>
+<span class="namec">PrecipForcing Block Name:</span> This specifies in the name of the precipitation forcing block as it will be referred to later in the configuration file. In the above example the block name is "Q2Precip". <br />
+<span class="namec">TYPE:</span> Specifies the file type of the precipitation. Possible type values are:<br />
+<pre class="valuec">
+<em>ASC</em>: An ESRI ASCII grid.
+<em>BIF</em>: A binary file version of an ESRI ASCII grid.
+<em>TIF</em>: A float32 geotiff grid.
+<em>TRMMRT</em>: TRMM Multisatellite Precipitation Analysis realtime binary grid. Can be gzip compressed.
+<em>TRMMV7</em>: TRMM Multisatellite Precipitation Analysis 3B42V7 HDF5 grid.
+<em>MRMS</em>: Multi-Radar Multi-Sensor binary grid.
+</pre>
+<span class="namec">UNIT:</span> Specifies the units of the precipitation in the file. Supported length units are meters (m), centimeters (cm) and millimeters (mm). Supported time units are year (y), month (m), day (d), hour (h), minute (u) and second (s). Modifiers in front of the time portion are also supported. For example if your precipitation forcing file has units of millimeters per three hours then your "UNIT" line would appear as "UNIT=mm/3h".<br />
+<span class="namec">FREQ:</span> Specifies the frequency at which precipitation files should be ingested by the model. Supported time units are year (y), month (m), day (d), hour (h), minute (u) and second (s).<br />
+<span class="namec">LOC:</span> Specifies the directory location of the precipitation forcing files.<br />
+<span class="namec">NAME:</span> Specifies the naming convention of the precipitation forcing files. These files can (and should) contain valid time dates. The name can be of any format. YYYY will be replaced with the year, MM replaced with the month, DD replaced with the day, HH replaced with the hour, UU replaced with the minute and SS replaced with the second.<br /><br />	
+				<li><a name="pet">Potential Evapotranspiration (PET) Information</a></li>
+                                        <p>The potential evapotranspiration forcing section specifies the information necessary to adequately describe the PET product that the model will ingest.<br /></p>
+<pre>
+[PETForcing PET]
+TYPE=BIF
+UNIT=mm/h
+FREQ=m
+LOC=/EF5Demo/FF/pet
+NAME=PET_MM.bif
+</pre><p class="prec">Example PETForcing Block</p>
+<span class="namec">PETForcing Block Name:</span> This specifies in the name of the PET forcing block as it will be referred to later in the configuration file. In the above example the block name is "PET". <br />
+<span class="namec">TYPE:</span> Specifies the file type of the PET. Possible type values are:<br />
+<pre class="valuec">
+<em>ASC</em>: An ESRI ASCII grid.
+<em>BIF</em>: A binary version of an ESRI ASCII grid.
+<em>TIF</em>: A float32 geotiff grid.
+</pre>
+<span class="namec">UNIT:</span> Specifies the units of the PET in the file. Supported length units are meters (m), centimeters (cm) and millimeters (mm). Support
+ed time units are year (y), month (m), day (d), hour (h), minute (u) and second (s). Modifiers in front of the time portion are also supported. For example if your PET forcing file has units of millimeters per three hours then your "UNIT" line would appear as "UNIT=mm/3h".<br /> PET data may also be given as temperate data in degrees Celsius with unit "C". The temperature data is converted into PET.<br />
+<span class="namec">FREQ:</span> Specifies the frequency at which PET files should be ingested by the model. Supported time units are year (y), month (m), day (d
+), hour (h), minute (u) and second (s).<br />
+<span class="namec">LOC:</span> Specifies the directory location of the PET forcing files.<br />
+<span class="namec">NAME:</span> Specifies the naming convention of the PET forcing files. These files can (and should) contain valid time dates. The name can be
+ of any format. YYYY will be replaced with the year, MM replaced with the month, DD replaced with the day, HH replaced with the hour, UU replaced with the minute and SS replaced with the second.<br /><br />
+				<li><a name="gauge">Gauge Locations</a></li>
+					<p>These blocks specify the location of the gauges to the model. This is useful if you want time series output at a point and also to specify parameters. Basins are treated as collections of gauges with the outlet gauge being the independent gauge and all other gauges inside a basin being dependent gauges.</p>
+<pre>[Gauge OKC]
+LON=-97.01
+LAT=35.68
+OBS=/EF5Demo/obs/okc.csv
+BASINAREA=341.88
+OUTPUTTS=TRUE
+
+[Gauge AR]
+LON=-93.62
+LAT=34.37
+</pre><p class="prec">Example Gauge Location Blocks</p>
+<span class="namec">Gauge Location Block Name:</span> This specifies in the name of the gauge location block as it will be referred to later in the configuration file. In the above example the block names are "OKC" and "AR". <br />
+<span class="namec">LON:</span> This is the longitude of the gauge in an unprojected coordinate system. EF5 will reproject the gauge point into the appropriate coordinate system.<br />
+<span class="namec">LAT:</span> This is the latitude of the gauge in an unprojected coordinate system. EF5 will reproject the gauge point into the appropriate coordinate system.<br />
+<span class="namec">CELLX:</span> <em>(optional)</em> This is the x-coordinate of the gauge in the basic file, used in place of LAT-LON.<br />
+<span class="namec">CELLY:</span> <em>(optional)</em> This is the y-coordinate of the gauge in the basic file, used in place of LAT-LON.<br />
+<span class="namec">OBS:</span> <em>(optional)</em> This is a file containing a time series specifying the observed values at the gauge. This is only used during model calibration.<br />
+<span class="namec">BASINAREA:</span> <em>(optional)</em> Observed contributing basin area for this gauge in km<sup>2</sup>. EF5 will search nearby grid cells to match flow accumulations as closely as possible.<br />
+<span class="namec">OUPUTTS:</span> <em>(optional)</em> Output a time series file for this gauge. Possible values are TRUE, YES, FALSE and NO. Default value is YES<br />
+<span class="namec">WANTDA:</span> <em>(optional)</em> If we are doing data assimilation, do we want it done for this gauge? Possible values are TRUE, YES, FALSE and NO. Default value is YES<br />
+<span class="namec">WANTCO:</span> <em>(optional)</em> Do we want this gauge included in the combined output file? Possible values are TRUE, YES, FALSE and NO. Default value is NO<br /><br />
+
+				<li><a name="basin">Basins</a></li>
+                                        <p>These blocks do not represent actual physical basins but rather a collection of specified gauge locations that may or may not form a single independent basin.</p>
+<pre>[Basin FF]
+GAUGE=OKC
+GAUGE=AR
+</pre><p class="prec">Example Basin Block</p>
+<span class="namec">Basin Block Name:</span> This specifies in the name of the basin block as it will be referred to later in the configuration file. In the above example the block name is "FF". <br />
+<span class="namec">GAUGE:</span> This is the name of the gauge location block to include as part of this basin.<br /><br />
+				
+				<li><a name="param">Parameter Sets</a></li>
+				<p>These blocks control the distributed model parameter settings. Parameters are specified per gauge and propogated upstream. Therefore each independent gauge must have a parameter set specified. Gridded parameters can be specified using the parameter name combined with "_grid" with a value specifying the grid file. When gridded parameters and uniform parameters are specified the uniform parameters act as scalar multipliers on the gridded parameter values.</p>
+				<ol>
+					<li><a name="paramcrest">CREST Parameter Set</a></li>
+<pre>
+[CrestParamSet ABRFC]
+wm_grid=/hydros/zflamig/EF5_Jess/params/crest_params/wm_usa.tif
+im_grid=/hydros/zflamig/EF5_Jess/params/crest_params/im_usa.tif
+fc_grid=/hydros/zflamig/EF5_Jess/params/crest_params/ksat_usa.tif
+b_grid=/hydros/zflamig/EF5_Jess/params/crest_params/b_usa.tif
+gauge=03455500
+wm=1.00
+b=1.0
+im=0.01
+ke=1.0
+fc=1.00
+iwu=50.0
+</pre><p class="prec">Example CrestParamSet Block</p>
+					<span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+					<span class="namec">WM:</span> The maximum soil water capacity (depth integrated pore space) of the soil layer. (mm)<br />
+					<span class="namec">B:</span> The exponent of the variable infiltration curve.<br />
+					<span class="namec">IM:</span> The impervious area ratio. (% between 0 and 100)<br />
+					<span class="namec">KE:</span> The multiplier to convert between input PET and local actual ET.<br />
+					<span class="namec">FC:</span> The soil saturated hydraulic conductivity (Ksat). (mm hr<sup>-1</sup>) <br />
+					<span class="namec">IWU:</span> The initial value of soil water. This is a percentage of the WM. (% between 0 and 100)<br /><br />
+					
+					<li><a name="paramsac">SAC-SMA Parameter Set</a></li>
+          <pre>
+[SacParamSet ABRFC]
+UZTWM_grid=/data/FLASH/v2/sac_params/uztwm_usa.tif
+UZFWM_grid=/data/FLASH/v2/sac_params/uzfwm_usa.tif
+UZK_grid=/data/FLASH/v2/sac_params/uzk_usa.tif
+ZPERC_grid=/data/FLASH/v2/sac_params/zperc_usa.tif
+REXP_grid=/data/FLASH/v2/sac_params/rexp_usa.tif
+LZTWM_grid=/data/FLASH/v2/sac_params/lztwm_usa.tif
+LZFSM_grid=/data/FLASH/v2/sac_params/lzfsm_usa.tif
+LZFPM_grid=/data/FLASH/v2/sac_params/lzfpm_usa.tif
+LZSK_grid=/data/FLASH/v2/sac_params/lzsk_usa.tif
+LZPK_grid=/data/FLASH/v2/sac_params/lzpk_usa.tif
+PFREE_grid=/data/FLASH/v2/sac_params/pfree_usa.tif
+gauge=01055000
+UZTWM=1.0
+UZFWM=1.0
+UZK=1.0
+PCTIM=0.101
+ADIMP=0.10
+RIVA=1.001
+ZPERC=1.0
+REXP=1.0
+LZTWM=1.0
+LZFSM=1.0
+LZFPM=1.0
+LZSK=1.0
+LZPK=1.0
+PFREE=1.0
+SIDE=0.0
+RSERV=0.3
+ADIMC=1.0
+UZTWC=0.55
+UZFWC=0.14
+LZTWC=0.56
+LZFSC=0.11
+LZFPC=0.46
+          </pre><p class="prec">Example SacParamSet Block</p>
+          <span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+          <span class="namec">UZTWM:</span> Upper zone tension water maximum (mm)<br />
+          <span class="namec">UZFWM:</span> Upper zone free water maximum (mm)<br />
+          <span class="namec">UZK:</span> Fractional daily upper zone free water withdrawal rate<br />
+          <span class="namec">PCTIM:</span> Minimum impervious area (%)<br />
+          <span class="namec">ADIMP:</span> Additional impervious area (%)<br />
+          <span class="namec">RIVA:</span> Riparian vegetation area (%)<br />
+          <span class="namec">ZPERC:</span> Maximum percolation rate<br />
+          <span class="namec">REXP:</span> Exponent for the percolation equation<br />
+          <span class="namec">LZTWM:</span> Lower zone tension water capacity (mm)<br />
+          <span class="namec">LZFSM:</span> Lower zone supplemental free water capacity (mm)<br />
+          <span class="namec">LZFPM:</span> Lower zone primary free water capacity (mm)<br />
+          <span class="namec">LZSK:</span> Fractional daily supplemental withdrawal rate<br />
+          <span class="namec">LZPK:</span> Fractional daily primary withdrawal rate<br />
+          <span class="namec">PFREE:</span> Percent of percolated water which always goes directly to lower zone free water storages (%)<br />
+          <span class="namec">SIDE:</span> Ratio of non-channel baseflow (deep recharge) to channel (visible) baseflow<br />
+          <span class="namec">RSERV:</span> Percent of lower zone free water which cannot be transferred to lower zone tension water (%)<br />
+          <span class="namec">ADIMC:</span> Tension water contents of the ADIMP area (mm)<br />
+          <span class="namec">UZTWC:</span> Upper zone tension water contents (mm)<br />
+          <span class="namec">UZFWC:</span> Upper zone free water contents (mm)<br />
+          <span class="namec">LZTWC:</span> Lower zone tension water contents (mm)<br />
+          <span class="namec">LZFSC:</span> Lower zone free supplemental contents (mm)<br />
+          <span class="namec">LZFPC:</span> Lower zone free primary contents (mm)<br /><br />
+          <li><a name="paramhp">HP Parameter Set</a></li>
+          To be completed in a future revision.<br /><br />
+          <li><a name="paramlr">Linear Reservoir Parameter Set</a></li>
+          <pre>
+[lrparamset rundu]
+gauge=rundu
+coem=1611.115479
+river=307.980042
+under=2531.556641
+leako=0.918236
+leaki=0.017568
+th=8.140809
+iso=0.000040
+isu=0.000073
+          </pre>
+          To be completed in a future revision<br /><br />
+          <li><a name="paramkw">Kinematic Wave Parameter Set</a></li>
+          <pre>
+[KWParamSet rundu]
+GAUGE=rundu
+UNDER=1.673110
+LEAKI=0.043105
+TH=6.658569
+ISU=0.000000
+ALPHA=2.991570
+BETA=0.932080
+ALPHA0=4.603945
+          </pre><p class="prec">Example KWParamSet Block</p>
+          <span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+          <span class="namec">TH:</span> The number of grid cells needed to flow into a cell for it to be declared a channel grid cell.<br />
+          <span class="namec">UNDER:</span> The interflow flow speed multiplier<br />
+          <span class="namec">LEAKI:</span> The amount of water leaked out of the interflow reservoir at each time step. Ranges between 0 and 1.<br />
+          <span class="namec">ISU:</span> The initial value of the interflow reservoir.<br />
+          <span class="namec">ALPHA:</span> The multiplier in Q = alpha*A<sup>beta</sup> used for channel routing<br />
+          <span class="namec">BETA:</span> The exponent in Q = alpha*A<sup>beta</sup> used for channel routing<br />
+          <span class="namec">ALPHA0:</span> The Alpha value used for overland routing.<br /><br />
+          <li><a name="paramsnow17">Snow-17 Parameter Set</a></li>
+          <pre>
+[snow17paramset tarbela]
+GAUGE=tarbela
+UADJ=0.184653
+MBASE=0.047224
+MFMAX=1.068658
+MFMIN=0.516059
+TIPM=0.911706
+NMF=0.077336
+PLWHC=0.093812
+SCF=2.219492
+          </pre><p class="prec">Example Snow17ParamSet Block</p>
+          <span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+          <span class="namec">UADJ:</span> The number of grid cells needed to flow into a cell for it to be declared a channel grid cell.<br />
+          <span class="namec">MBASE:</span> The interflow flow speed multiplier<br />
+          <span class="namec">MFMAX:</span> The amount of water leaked out of the interflow reservoir at each time step. Ranges between 0 and 1.<br />
+          <span class="namec">MFMIN:</span> The initial value of the interflow reservoir.<br />
+          <span class="namec">TIPM:</span> The multiplier in Q = alpha*A<sup>beta</sup> used for channel routing<br />
+          <span class="namec">NMF:</span> The exponent in Q = alpha*A<sup>beta</sup> used for channel routing<br />
+          <span class="namec">PLWHC:</span> The Alpha value used for overland routing.<br />
+          <span class="namec">SCF:</span> The Alpha value used for overland routing.<br /><br />
+          <li><a name="paramsi">Simple Inundation Parameter Set</a></li>
+          <pre>
+[simpleinundationparamset rundu]
+gauge=rundu
+alpha=2.991570
+beta=0.932080
+          </pre><p class="prec">Example SimpleInundationParamSet Block</p>
+          <span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+          <span class="namec">ALPHA:</span> The multiplier in A = (Q/alpha)<sup>1/beta</sup> used for computing cross-sectional area<br />
+          <span class="namec">BETA:</span> The exponent in A = (Q/alpha)<sup>1/beta</sup> used for computing cross-sectional area<br /><br />
+				</ol>
+				<li><a name="task">Tasks</a></li>
+				<p>Tasks define the necessary information about which model to run, over what time period to run, with what time step to run, etc.</p>
+<pre>[Task RunFF]
+STYLE=SIMU
+MODEL=CREST
+BASIN=FF
+PRECIP=Q2_PRECIP
+PET=PET
+OUTPUT=/EF5Demo/FF/output/
+PARAM_SET=FF
+TIMESTEP=5u
+TIME_BEGIN=201006010000
+TIME_END=201006010030
+</pre><p class="prec">Example Task Block</p>
+
+				<span class="namec">STYLE:</span> The style of task that this is. Possible values are:<br />
+				<pre class="valuec">
+<em>SIMU</em>: A simulation run.
+<em>SIMU_RP</em>: A simulation run that will produce standard deviation, average and skew coefficient grids for estimating return period.
+<em>CALI_DREAM</em>: A calibration run using DREAM.
+<em>CLIP_BASIN</em>: Clips the basic files to the specified BASIN.
+<em>CLIP_GAUGE</em>: Clips the basic files to the first specified gauge.</pre>
+				<span class="namec">MODEL:</span> The water balance model that this task should use. Possible values are:<br />
+        <pre class="valuec">
+<em>CREST</em>: The Coupled Routing and Excess STorage distributed hydrological model.
+<em>SAC</em>: The SAC-SMA model.
+<em>HyMOD</em>: HyMod.</pre>
+        <span class="namec">ROUTING:</span> The routing method that this task should use. Possible values are:<br />
+        <pre class="valuec">
+<em>KW</em>: Kinematic Wave Routing.
+<em>LR</em>: Linear Reservoir Routing.</pre>
+        <span class="namec">SNOW:</span> <em>(Optional)</em> The snow melt model that this task should use. Possible values are:<br />
+        <pre class="valuec"><em>SNOW17</em>: The Snow-17 snow melt model.</pre>
+        <span class="namec">INUNDATION:</span> <em>(Optional)</em> The inundation model that this task should use. Possible values are:<br />
+        <pre class="valuec"><em>SIMPLEINUNDATIOn</em>: The Simple Inundation model.</pre>
+				<span class="namec">BASIN:</span> The basin block name which defines the area over which the model should be run.<br />
+        <span class="namec">DEFAULTPARAMSGAUGE:</span> <em>(Optional)</em> The gauge for which parameters are specified and used for gauges which did not have parameters specified. Useful when modeling large areas with gridded parameters.<br />
+				<span class="namec">PRECIP:</span> The precipitation block name which defines the precipitation.<br />
+        <span class="namec">PRECIPFORECAST:</span> <em>(Optional)</em> The precipitation block name which defines the forecast precipitation. Used if the precipiation specified in PRECIP is unavailable for the current time.<br />
+        <span class="namec">TEMP:</span> <em>(Required if using SNOW)</em> The temperature block name which defines the temperature data to be used.<br />
+        <span class="namec">TEMPFORECAST:</span> <em>(Optional if using SNOW)</em> The temperature block name which defines the forecast temperatures. Used if the temperature specified in TEMP is unavailable for the current time.<br />
+				<span class="namec">PET:</span> The PET block name which defines the PET to use.<br />
+				<span class="namec">PARAM_SET:</span> The parameter set block name which defines which set of water balance parameters to use.<br />
+        <span class="namec">ROUTING_PARAM_SET:</span> The parameter set block name which defines which set of routing parameters to use.<br />
+        <span class="namec">SNOW_PARAM_SET:</span> <em>(Required if using SNOW)</em> The parameter set block name which defines which set of snow parameters to use.<br />
+        <span class="namec">INUNDATION_PARAM_SET:</span> <em>(Required if using INUNDATION)</em> The parameter set block name which defines which set of inundation parameters to use.<br />
+        <span class="namec">CALI_PARAM:</span> <em>(Required if using CALI_DREAM)</em> The parameter set block name which defines which set of water balance parameters settings for calibration.<br />
+        <span class="namec">ROUTING_CALI_PARAM:</span> <em>(Required if using CALI_DREAM)</em> The parameter set block name which defines which set of routing parameters to use for calibration.<br />
+        <span class="namec">SNOW_CALI_PARAM:</span> <em>(Required if using SNOW, CALI_DREAM)</em> The parameter set block name which defines which set of snow parameters to use for calibration.<br />
+        <span class="namec">INUNDATION_CALI_PARAM:</span> <em>(Required if using INUNDATION, CALI_DREAM)</em> The parameter set block name which defines which set of inundation parameters to use for calibration.<br />
+        <span class="namec">PRELOAD_FILE:</span> <em>(Optional)</em> The file path and name where for the preload file. The preload file contains the forcings (Precip, PET, Temp) defined for the current time period and basin extent. Generated by EF5 if it does not exist. Useful for faster runs when forcings are not changing such as with manual calibration.<br />
+        <span class="namec">STATES:</span> <em>(Optional)</em> The location where output files should be written.<br />
+				<span class="namec">TIMESTEP:</span> The time step to use when running the model. Supported time units are year (y), month (m), day (d), hour (h), minute (u) and second (s).<br />
+				<span class="namec">TIME_BEGIN:</span> The initialization time for the model run. YYYYMMDDHHUUSS format.<br />
+				<span class="namec">TIME_END:</span> The ending time for the model run. YYYYMMDDHHUUSS format.<br />
+        <span class="namec">TIME_WARMEND:</span> The end of the warm-up period. YYYYMMDDHHUUSS format.<br />
+        <span class="namec">TIME_STATE:</span> <em>(Optional)</em> The time at which to output model states. YYYYMMDDHHUUSS format.<br />
+        <span class="namec">OUTPUT:</span> The location where output files should be written.<br />
+        <span class="namec">OUTPUT_GRIDS:</span> <em>(Optional)</em> Which grids should be output, combine together with | :<br />
+        <pre class="valuec">
+<em>NONE</em>: No gridded output.
+<em>STREAMFLOW</em>: Streamflow (cms)
+<em>SOILMOISTURE</em>: Soil moisture (%)
+<em>RETURNPERIOD</em>: Streamflow return period (years)
+<em>PRECIP</em>: Precipitaiton (mm)
+<em>PET</em>: Potential evapotranspiration (mm)
+<em>SNOWWATER</em>: Snow water equivalent from the snow melt model (mm)
+<em>TEMPERATURE</em>: Temperature (C)
+<em>INUNDATION</em>: Water depth (m)
+<em>MAXSTREAMFLOW</em>: Maximum streamflow during run (cms)
+<em>MAXSOILMOISTURE</em>: Maximum soil moisture during run (%)
+<em>MAXRETURNPERIOD</em>: Maximum return period during run (years)
+<em>MAXSNOWWATER</em>: Maximum snow water equivalent (mm)</pre>
+        <span class="namec">DA_FILE:</span> <em>(Optional)</em> The input observations to be added for use with streamflow data assimilation,<br />
+        <span class="namec">CO_FILE:</span> <em>(Optional)</em> The combined output file if one is desired.<br />
+        <span class="namec">RP_STDGRID:</span> <em>(Optional)</em> The geotiff file representing the standard deviation for the Log-Pearson Type III return period distribution.<br />
+        <span class="namec">RP_AVGGRID:</span> <em>(Optional)</em> The geotiff file representing the average for the Log-Pearson Type III return period distribution.<br />
+        <span class="namec">RP_CSGRID:</span> <em>(Optional)</em> The geotiff file representing the skew coefficient for the Log-Pearson Type III return period distribution.<br />
+				<li><a name="execute">Execute Block</a></li>
+				<p>The execute block defines which tasks to run when the ef5 program is executed</p>
+<pre>[Execute]
+TASK=RunFF
+</pre><p class="prec">Example Execute Block</p>
+				<span class="namec">TASK:</span> The task block name which should be executed.<br /><br />
+				</ol>
+				<li><a name="run">Running EF5</a></li>
+				<pre class="pree">ef5 [controlfile]</pre>
+				<p>Running ef5 is straight forwarded, you can called the executable with no arguments and it will assume a default configuration file name of "control.txt" in the current working directory or you can pass in a configuration file name as an argument.</p>
+				<li><a name="cali">Calibrating the Models</a></li>
+				<p>This section will be filled in once calibration methods are implemented.</p>
+				<li>Appendix</li>
+					<ol>
+						<li><a name="cconfig">Complete Sample Configuration File</a></li>
+						<pre>
+/*
+ * This is an example configuration file for EF5
+ */
+
+[Basic]
+DEM=/EF5Demo/FF/basic/DEM.asc
+DDM=/EF5Demo/FF/basic/DDM.asc
+FAM=/EF5Demo/FF/basic/FAM.asc
+PROJ=laea
+ESRIDDM=true
+
+[PrecipForcing Q2Precip]
+TYPE=BIF
+UNIT=mm/h
+FREQ=5u
+LOC=/EF5Demo/FF/precip
+NAME=Q2_YYYYMMDDHHUU.bif
+
+[PETForcing PET]
+TYPE=BIF
+UNIT=mm/h
+FREQ=m
+LOC=/EF5Demo/FF/pet
+NAME=PET_MM.bif
+
+[Gauge OKC]
+LON=-97.01
+LAT=35.68
+OBS=/EF5Demo/obs/okc.csv
+
+[Gauge AR]
+LON=-93.62
+LAT=34.37
+
+[Basin FF]
+GAUGE=OKC
+GAUGE=AR
+
+[CrestParamSet FF]
+GAUGE=AR
+COEM=24.230076 EXPM=0.502391 RIVER=1.73056
+UNDER=0.291339 LEAKO=0.56668 LEAKI=0.251648
+TH=63.20205 GM=1.364364 PWM=71.96465
+PB=0.964355 PIM=6.508687 PKE=0.19952
+PFC=2.578529 IWU=53.52593 ISO=5.899539
+ISU=17.31128
+GAUGE=OKC
+COEM=24.230076 EXPM=0.502391 RIVER=1.73056
+UNDER=0.291339 LEAKO=0.56668 LEAKI=0.251648
+TH=63.20205 GM=1.364364 PWM=71.96465
+PB=0.964355 PIM=6.508687 PKE=0.19952
+PFC=2.578529 IWU=53.52593 ISO=5.899539
+ISU=17.31128
+
+[Task RunFF]
+STYLE=SIMU
+MODEL=CREST
+BASIN=FF
+PRECIP=Q2_PRECIP
+PET=PET
+OUTPUT=/EF5Demo/FF/output/
+PARAM_SET=FF
+TIMESTEP=5u
+TIME_BEGIN=201006010000
+TIME_END=201006010030
+
+[Execute]
+TASK=RunFF</pre><p class="prec">Example of a full EF5 configuration file.</p>	
+					</ol>
+			</ol>
+		</div>
+	</body>
+</html>

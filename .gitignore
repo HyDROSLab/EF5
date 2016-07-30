@@ -1,0 +1,23 @@
+bin/*
+*.o
+build/*
+*/build/*
+*/*.xcodeproj/* !*.xcodeproj/project.pbxproj
+*.xcodeproj
+.svn
+
+.DS_Store
+profile
+
+#Stuff for ignoring automake/autoconf files!
+Makefile
+*.m4
+config.*
+configure
+*.in
+missing
+install-sh
+depcomp
+stamp-h1
+*.cache/*
+src/.*
