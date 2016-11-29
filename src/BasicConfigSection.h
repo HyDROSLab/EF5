@@ -14,6 +14,8 @@ class BasicConfigSection : public ConfigSection {
 		char *GetDEM();
 		char *GetDDM();
 		char *GetFAM();
+		char *GetArtist();
+		char *GetCopyright();
 		PROJECTIONS GetProjection();
 		bool IsESRIDDM() { return esriDDM; }
 		bool IsSelfFAM() { return selfFAM; }		
@@ -26,6 +28,8 @@ class BasicConfigSection : public ConfigSection {
 		char DEM[CONFIG_MAX_LEN];
 		char DDM[CONFIG_MAX_LEN];
 		char FAM[CONFIG_MAX_LEN];
+		char artist[CONFIG_MAX_LEN];
+		char copyright[CONFIG_MAX_LEN];
 		PROJECTIONS projection;
 		
 		

@@ -1,4 +1,5 @@
 #include <climits>
+#include "BasicConfigSection.h"
 #include "GridWriter.h"
 
 extern LongGrid *g_DEM;
@@ -77,8 +78,19 @@ void GridWriter::WriteGrid(std::vector<GridNode> *nodes, std::vector<float> *dat
     if (ascii) {
         WriteFloatAscGrid(file, &grid);
     } else {
-        WriteFloatTifGrid(file, &grid);
-    }
+    	char *artist = NULL;
+        char *copyright = NULL;
+        char *datetime = NULL;
+				printf("Artist1 is %s\n", g_basicConfig->GetArtist());
+        if ((g_basicConfig->GetArtist())[0]) {
+          artist = g_basicConfig->GetArtist();
+					printf("Artist is %s\n", artist);
+        }
+        if ((g_basicConfig->GetCopyright())[0]) {
+          copyright = g_basicConfig->GetCopyright();
+        }
+        WriteFloatTifGrid(file, &grid, artist, datetime, copyright);
+		}
 }
 
 void GridWriter::WriteGrid(std::vector<GridNode> *nodes, std::vector<double> *data, const char *file, bool ascii) {
@@ -96,6 +108,17 @@ void GridWriter::WriteGrid(std::vector<GridNode> *nodes, std::vector<double> *da
     if (ascii) {
         WriteFloatAscGrid(file, &grid);
     } else {
-        WriteFloatTifGrid(file, &grid);
+				char *artist = NULL;
+				char *copyright = NULL;
+				char *datetime = NULL;
+				printf("Artist2 is %s\n", g_basicConfig->GetArtist());
+				if (g_basicConfig->GetArtist()[0]) {
+					artist = g_basicConfig->GetArtist();
+					printf("Artistd is %s\n", artist);
+				}
+				if (g_basicConfig->GetCopyright()[0]) {
+          copyright = g_basicConfig->GetCopyright();
+        }
+        WriteFloatTifGrid(file, &grid, artist, datetime, copyright);
     }
 }

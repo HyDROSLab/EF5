@@ -103,7 +103,7 @@ bool CRESTModel::WaterBalance(float stepHours, std::vector<float> *precip, std::
 	size_t numNodes = nodes->size();
 
 #if _OPENMP
-	#pragma omp parallel for
+	//#pragma omp parallel for
 #endif
   for (size_t i = 0; i < numNodes; i++) {
     GridNode *node = &nodes->at(i);
@@ -280,6 +280,12 @@ void CRESTModel::InitializeParameters(std::map<GaugeConfigSection *, float *> *p
     if (!paramGrids->at(PARAM_CREST_IWU)) {
 			cNode->states[STATE_CREST_SM] = cNode->params[PARAM_CREST_IWU] * cNode->params[PARAM_CREST_WM] / 100.0;
 		}
+
+
+if (cNode->params[PARAM_CREST_WM] < 0.0) {
+        cNode->params[PARAM_CREST_WM] = 100.0;
+
+    }	
     
     if (cNode->states[STATE_CREST_SM] < 0.0) {
       printf("Node Soil Moisture(%f) is less than 0, setting to 0.\n", cNode->states[STATE_CREST_SM]);
@@ -287,7 +293,7 @@ void CRESTModel::InitializeParameters(std::map<GaugeConfigSection *, float *> *p
     } else if (cNode->states[STATE_CREST_SM] > cNode->params[PARAM_CREST_WM]) {
       printf("Node Soil Moisture(%f) is greater than WM, setting to %f.\n", cNode->states[STATE_CREST_SM], cNode->params[PARAM_CREST_WM]);
     }
-    
+   
     if (cNode->params[PARAM_CREST_IM] < 0.0) {
       //printf("Node Impervious Area(%f) is less than 0, setting to 0.\n", cNode->params[PARAM_CREST_IM]);
       cNode->params[PARAM_CREST_IM] = 0.0;
@@ -298,11 +304,17 @@ void CRESTModel::InitializeParameters(std::map<GaugeConfigSection *, float *> *p
     
     if (cNode->params[PARAM_CREST_B] < 0.0) {
       //printf("Node B (%f) is less than 0, setting to 0.\n", cNode->params[PARAM_CREST_B]);
-      cNode->params[PARAM_CREST_B] = 0.0;
+      cNode->params[PARAM_CREST_B] = 1.0;
     } else if (cNode->params[PARAM_CREST_B] != cNode->params[PARAM_CREST_B]) {
       //printf("Node B (%f) NaN, setting to %f.\n", cNode->params[PARAM_CREST_B], 0.0);
       cNode->params[PARAM_CREST_B] = 0.0;
     }
+
+    if (cNode->params[PARAM_CREST_FC] < 0.0) {
+      //printf("Node B (%f) is less than 0, setting to 0.\n", cNode->params[PARAM_CREST_B]);
+      cNode->params[PARAM_CREST_FC] = 1.0;
+    }
+
   }
   
 }

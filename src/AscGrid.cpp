@@ -27,15 +27,15 @@ LongGrid *ReadLongAscGrid(char *file) {
     delete grid;
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->extent.left) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->extent.left) != 1) {
     delete grid;
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->extent.bottom) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->extent.bottom) != 1) {
     delete grid;
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->cellSize) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->cellSize) != 1) {
     delete grid;
     return NULL;
   }
@@ -94,19 +94,19 @@ FloatGrid *ReadFloatAscGrid(char *file) {
     fclose(fileH);
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->extent.left) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->extent.left) != 1) {
     WARNING_LOGF("ASCII file %s missing lower left x", file);
     delete grid;
     fclose(fileH);
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->extent.bottom) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->extent.bottom) != 1) {
     WARNING_LOGF("ASCII file %s missing lower left y", file);
     delete grid;
     fclose(fileH);
     return NULL;
   }
-  if (fscanf(fileH, "%*s %e", &grid->cellSize) != 1) {
+  if (fscanf(fileH, "%*s %lf", &grid->cellSize) != 1) {
     WARNING_LOGF("ASCII file %s missing cell size", file);
     delete grid;
     fclose(fileH);
