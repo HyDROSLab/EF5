@@ -4,10 +4,10 @@
 class BoundingBox {
 
 	public:
-		float top;
-		float bottom;
-		float left;
-		float right;
+		double top;
+		double bottom;
+		double left;
+		double right;
 		
 };
 

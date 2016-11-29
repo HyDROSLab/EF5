@@ -12,6 +12,8 @@ BasicConfigSection::BasicConfigSection() {
   projectionSet = false;
   esriDDMSet = false;
   selfFAMSet = false;
+	artist[0] = 0;
+	copyright[0] = 0;
 }
 
 BasicConfigSection::~BasicConfigSection() {
@@ -30,6 +32,14 @@ char *BasicConfigSection::GetFAM() {
   return FAM;
 }
 
+char *BasicConfigSection::GetArtist() {
+  return artist;
+}
+
+char *BasicConfigSection::GetCopyright() {
+  return copyright;
+}
+
 PROJECTIONS BasicConfigSection::GetProjection() {
   return projection;
 }
@@ -45,6 +55,20 @@ CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
   } else if (!strcasecmp(name, "fam")) {
     strcpy(FAM, value);
     FAMSet = true;
+	} else if (!strcasecmp(name, "author")) {
+		strcpy(artist, value);
+		for (unsigned int i = 0; i < strlen(artist); i++) {
+			if (artist[i] == '_') {
+				artist[i] = ' ';
+			}
+		}
+	} else if (!strcasecmp(name, "copyright")) {
+		strcpy(copyright, value);
+		for (unsigned int i = 0; i < strlen(copyright); i++) {
+      if (copyright[i] == '_') {
+        copyright[i] = ' ';
+      }
+    }
   } else if (!strcasecmp(name, "proj")) {
     if (!strcasecmp(value, "geographic")) {
       projection = PROJECTION_GEOGRAPHIC;

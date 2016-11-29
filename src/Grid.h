@@ -2,6 +2,7 @@
 #define GRID_H
 
 #include <cstdio>
+#include <math.h>
 #include "BoundingBox.h"
 
 struct GridLoc {
@@ -20,12 +21,21 @@ public:
   long numCols;
   long numRows;
   BoundingBox extent;
-  float cellSize;
-  
+  double cellSize;
+	unsigned short modelType, geographicType, geodeticDatum;
+	bool geoSet;
+ 
   bool IsSpatialMatch(const Grid *testGrid) {
-    return ((numCols == testGrid->numCols) && (numRows == testGrid->numRows)
-            && (extent.left == testGrid->extent.left) && (extent.bottom == testGrid->extent.bottom)
-            && (cellSize == testGrid->cellSize));
+	bool nxnyMatch = ((numCols == testGrid->numCols) && (numRows == testGrid->numRows));
+	return nxnyMatch;
+	/*if (!nxnyMatch) {
+		return false;
+	}
+	bool cellSize = (fabsf(cellSize - testGrid->cellSize) < 0.001);
+	return cellSize;*/
+//    return ((numCols == testGrid->numCols) && (numRows == testGrid->numRows)
+//            && (extent.left == testGrid->extent.left) && (extent.bottom == testGrid->extent.bottom)
+ //           && (cellSize == testGrid->cellSize));
   }
   
   bool GetGridLoc(float lon, float lat, GridLoc *pt) {
@@ -69,6 +79,7 @@ public:
   FloatGrid() {
     data = NULL;
     backingStore = NULL;
+		geoSet = false;
   }
   ~FloatGrid() {
     if (data) {
@@ -95,6 +106,7 @@ class LongGrid : public Grid {
 public:
   LongGrid() {
     data = NULL;
+		geoSet = false;
   }
   ~LongGrid() {
     if (data) {

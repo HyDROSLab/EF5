@@ -224,7 +224,7 @@ bool SAC::WaterBalance(float stepHours, std::vector<float> *precip, std::vector<
 	size_t i = 0;
   
 #if _OPENMP
-	#pragma omp parallel for
+	//#pragma omp parallel for
 #endif
 	for (i = 0; i < numNodes; i++) {
 		GridNode *node = &nodes->at(i);
