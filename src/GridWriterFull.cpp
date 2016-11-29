@@ -1,4 +1,5 @@
 #include <climits>
+#include "BasicConfigSection.h"
 #include "GridWriterFull.h"
 
 extern LongGrid *g_DEM;
@@ -14,6 +15,10 @@ void GridWriterFull::Initialize() {
 	grid.numRows = g_DEM->numRows;
 	grid.cellSize = g_DEM->cellSize;
 	grid.noData = -9999.0f;
+	grid.geoSet = g_DEM->geoSet;
+	grid.modelType = g_DEM->modelType;
+	grid.geographicType = g_DEM->geographicType;
+	grid.geodeticDatum = g_DEM->geodeticDatum;
     
 	grid.data = new float*[grid.numRows];
 	for (long i = 0; i < grid.numRows; i++) {
@@ -42,8 +47,17 @@ void GridWriterFull::WriteGrid(std::vector<GridNode> *nodes, std::vector<float> 
     if (ascii) {
         WriteFloatAscGrid(file, &grid);
     } else {
-        WriteFloatTifGrid(file, &grid);
-    }
+    	char *artist = NULL;
+        char *copyright = NULL;
+        char *datetime = NULL;
+        if (g_basicConfig->GetArtist()[0]) {
+          artist = g_basicConfig->GetArtist();
+        }
+        if (g_basicConfig->GetCopyright()[0]) {
+          copyright = g_basicConfig->GetCopyright();
+        }
+        WriteFloatTifGrid(file, &grid, artist, datetime, copyright);
+		}
 }
 
 void GridWriterFull::WriteGrid(std::vector<GridNode> *nodes, std::vector<double> *data, const char *file, bool ascii) {
@@ -61,6 +75,15 @@ void GridWriterFull::WriteGrid(std::vector<GridNode> *nodes, std::vector<double>
     if (ascii) {
         WriteFloatAscGrid(file, &grid);
     } else {
-        WriteFloatTifGrid(file, &grid);
+			char *artist = NULL;
+        char *copyright = NULL;
+        char *datetime = NULL;
+        if (g_basicConfig->GetArtist()[0]) {
+          artist = g_basicConfig->GetArtist();
+        }
+        if (g_basicConfig->GetCopyright()[0]) {
+          copyright = g_basicConfig->GetCopyright();
+        }
+        WriteFloatTifGrid(file, &grid, artist, datetime, copyright);
     }
 }

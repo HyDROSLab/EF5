@@ -4,6 +4,7 @@
 #include "xtiffio.h"
 #include "geotiffio.h"
 #include "Messages.h"
+#include "Defines.h"
 #include "TifGrid.h"
 
 #define TIFFTAG_GDAL_METADATA 42112
@@ -93,7 +94,7 @@ FloatGrid *ReadFloatTifGrid(const char *file, FloatGrid *incGrid) {
                &tiepoints);
   TIFFGetField(tif, TIFFTAG_GEOPIXELSCALE, &pixscalesize,
                &pixscale);
-  
+ 
   if (!grid || grid->numCols != width || grid->numRows != height) {
     if (grid) {
       delete grid;
@@ -132,7 +133,12 @@ FloatGrid *ReadFloatTifGrid(const char *file, FloatGrid *incGrid) {
   grid->extent.left = tiepoints[3];
   grid->extent.bottom = tiepoints[4]-(pixscale[1] * float(height));
   grid->extent.right = tiepoints[3]+(pixscale[0] * float(width));
-  
+ 
+	GTIFKeyGet(gtif, GTModelTypeGeoKey, &grid->modelType, 0, 1);
+  GTIFKeyGet(gtif, GeographicTypeGeoKey, &grid->geographicType, 0, 1);
+  GTIFKeyGet(gtif, GeogGeodeticDatumGeoKey, &grid->geodeticDatum, 0, 1);
+	grid->geoSet = true;
+ 
   for (long i = 0; i < grid->numRows; i++) {
     if (TIFFReadScanline(tif, grid->data[i], (unsigned int)i, 1) == -1) {
       WARNING_LOGF("TIF file %s corrupt? (scanline read failed)", file);
@@ -150,7 +156,7 @@ FloatGrid *ReadFloatTifGrid(const char *file, FloatGrid *incGrid) {
   
 }
 
-void WriteFloatTifGrid(const char *file, FloatGrid *grid) {
+void WriteFloatTifGrid(const char *file, FloatGrid *grid, const char *artist, const char *datetime, const char *copyright) {
   
   TIFFExtenderInit();
   
@@ -176,10 +182,22 @@ void WriteFloatTifGrid(const char *file, FloatGrid *grid) {
   TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, grid->numCols);
   TIFFSetField(tif, TIFFTAG_IMAGELENGTH, grid->numRows);
   TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,  20);
-  char buf[100];
+  TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
+	char buf[100];
   sprintf(buf, "%f", grid->noData);
   TIFFSetField(tif, TIFFTAG_GDAL_NODATA, buf);
-  
+ 	sprintf(buf, "EF5 v%s", EF5_VERSION);
+	TIFFSetField(tif, TIFFTAG_SOFTWARE, buf);
+	if (artist) {
+		TIFFSetField(tif, TIFFTAG_ARTIST, artist);
+	}
+	if (datetime) {
+		TIFFSetField(tif, TIFFTAG_DATETIME, datetime);
+	}
+	if (copyright) {
+		TIFFSetField(tif, TIFFTAG_COPYRIGHT, copyright);
+	}
+ 
   double tiepoints[6];
   double pixscale[3];
   
@@ -197,13 +215,28 @@ void WriteFloatTifGrid(const char *file, FloatGrid *grid) {
   
   TIFFSetField(tif, TIFFTAG_GEOTIEPOINTS, 6, tiepoints);
   TIFFSetField(tif, TIFFTAG_GEOPIXELSCALE, 3, pixscale);
-  
+
+	if (grid->geoSet) {
+		GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT,  1, grid->modelType);
+    GTIFKeySet(gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
+    GTIFKeySet(gtif, GeographicTypeGeoKey, TYPE_SHORT, 1, grid->geographicType);
+    GTIFKeySet(gtif, GeogGeodeticDatumGeoKey, TYPE_SHORT, 1, grid->geodeticDatum);
+    GTIFKeySet(gtif, GeogAngularUnitsGeoKey, TYPE_SHORT,  1, Angular_Degree);
+	} else { 
+		GTIFKeySet(gtif, GTModelTypeGeoKey, TYPE_SHORT,  1, ModelGeographic);
+		GTIFKeySet(gtif, GTRasterTypeGeoKey, TYPE_SHORT, 1, RasterPixelIsArea);
+		GTIFKeySet(gtif, GeographicTypeGeoKey, TYPE_SHORT, 1, GCS_WGS_84);
+		GTIFKeySet(gtif, GeogGeodeticDatumGeoKey, TYPE_SHORT, 1, Datum_WGS84);
+		GTIFKeySet(gtif, GeogAngularUnitsGeoKey, TYPE_SHORT,  1, Angular_Degree);
+	}
+ 
   for (long i = 0; i < grid->numRows; i++) {
     if (TIFFWriteScanline(tif, grid->data[i], (unsigned int)i, 0) == -1) {
       printf("eek!\n");
     }
   }
-  
+
+	GTIFWriteKeys(gtif);  
   GTIFFree(gtif);
   XTIFFClose(tif);
   
