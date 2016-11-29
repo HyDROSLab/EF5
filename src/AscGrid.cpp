@@ -51,7 +51,8 @@ LongGrid *ReadLongAscGrid(char *file) {
   
   for (long row = 0; row < grid->numRows; row++) {
     for (long col = 0; col < grid->numCols; col++) {
-      fscanf(fileH, "%ld", &grid->data[row][col]);
+      int c = fscanf(fileH, "%ld", &grid->data[row][col]);
+      (void)c;
     }
   }
   
@@ -138,7 +139,8 @@ FloatGrid *ReadFloatAscGrid(char *file) {
   
   for (long row = 0; row < grid->numRows; row++) {
     for (long col = 0; col < grid->numCols; col++) {
-      fscanf(fileH, "%f", &grid->data[row][col]);
+      int c = fscanf(fileH, "%f", &grid->data[row][col]);
+      (void)c;
     }
   }
   

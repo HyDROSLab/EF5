@@ -3,8 +3,6 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
 .rc.o:
 	$(WINDRES) src/ef5.rc -o $@
-%.o : %.rc
-	$(WINDRES) src/ef5.rc -o $@
 
 bin_PROGRAMS = $(top_builddir)/bin/ef5
 unit_FILES = src/LAEAProjection.cpp src/GeographicProjection.cpp src/DistanceUnit.cpp src/TimeUnit.cpp src/DistancePerTimeUnits.cpp src/TimeVar.cpp

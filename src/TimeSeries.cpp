@@ -32,7 +32,9 @@ void TimeSeries::LoadTimeSeries(char *file) {
 			pt->value = dataValue;
 			timeSeries.push_back(pt);
 		} else {
-			fgets(buffer, CONFIG_MAX_LEN, tsFile);
+			// Skip past this line because it is the wrong format
+			char *output = fgets(buffer, CONFIG_MAX_LEN, tsFile);
+			(void)output;
 		}
 	}
 

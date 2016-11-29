@@ -945,7 +945,8 @@ void Simulator::LoadDAFile(TaskConfigSection *task) {
           }
         }
       } else {
-        fgets(bufferGauge, CONFIG_MAX_LEN, tsFile);
+        char *output = fgets(bufferGauge, CONFIG_MAX_LEN, tsFile);
+	(void)output;
       }
     }
     
