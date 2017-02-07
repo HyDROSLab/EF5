@@ -4,4 +4,4 @@ git:
 before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq libgeotiff-dev
-script: ./configure && make
+script: autoreconf --force --install && ./configure && make

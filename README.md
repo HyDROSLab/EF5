@@ -1,4 +1,6 @@
-# Ensemble Framework For Flash Flood Forecasting (EF5)
+Ensemble Framework For Flash Flood Forecasting (EF5)
+===
+![version](https://img.shields.io/badge/version-1.1-blue.svg?style=flat) [![Build Status](https://travis-ci.org/HyDROSLab/EF5.svg?branch=master)](https://travis-ci.org/HyDROSLab/EF5)
 
 EF5 was created by the Hydrometeorology and Remote Sensing Laboratory at the University of Oklahoma.
 The goal of EF5 is to have a framework for distributed hydrologic modeling that is user friendly, adaptable, expandable, all while being suitable for large scale (e.g. continental scale) modeling of flash floods with rapid forecast updates. Currently EF5 incorporates 3 water balance models including the Sacramento Soil Moisture Accouning Model (SAC-SMA), Coupled Routing and Excess Storage (CREST), and hydrophobic (HP). These water balance models can be coupled with either linear reservoir or kinematic wave routing. 
@@ -13,13 +15,13 @@ See [manual.html](manual.html) for the EF5 operating manual which describes conf
 
 ### Linux
 
-Clone the source code from GitHub.
-1. autoreconf --force --install
-2. ./configure
+Clone the source code from GitHub.   
+1. autoreconf --force --install   
+2. ./configure   
 
-This sets up the system, if you have a path where you would like to install the files then use ./configure --prefix=/path/to/someplace
+This sets up the system, if you have a path where you would like to install the files then use ./configure --prefix=/path/to/someplace   
 
-3. make
+3. make   
    This compiles the EF5 application!
 
 ### OS X
