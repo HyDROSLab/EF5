@@ -5,17 +5,16 @@ matrix:
   include:
   - os: linux
     compiler: gcc
-  - os: linux
-    compiler: clang
+#  - os: linux
+#    compiler: clang
   - os: linux
     compiler: gcc
     env: CROSS=mingw64
 before_install: |-
   if [ "$CROSS" == "mingw64" ]
   then
-    sudo add-apt-repository "deb http://en.archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse" # We need an up-to-date MinGW
     sudo apt-get update -qq
-    sudo apt-get install -qq xenial gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw32-runtime
+    sudo apt-get install -qq gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
   else
     sudo apt-get update -qq
     sudo apt-get install -qq libgeotiff-dev
