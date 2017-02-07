@@ -272,7 +272,7 @@ void FindIndBasins(float left, float right, float top, float bottom) {
           nextN->x = locN.x;
           nextN->y = locN.y;
 					size_t index = nextN->y * g_DEM->numCols + nextN->x;
-					if (index >= 0 && index < gcItrs.size() && g_DEM->data[nextN->y][nextN->x] != g_DEM->noData && g_FAM->data[nextN->y][nextN->x] != g_FAM->noData) {
+					if (index < gcItrs.size() && g_DEM->data[nextN->y][nextN->x] != g_DEM->noData && g_FAM->data[nextN->y][nextN->x] != g_FAM->noData) {
 						//printf("%i %i %i %i %i %i %i\n", index, nextN->y, nextN->x, g_FAM->data[nextN->y][nextN->x], minY, minX, maxX);
 						if (gcItrs[index] != gridCells.end()) {
 					            gridCells.erase(gcItrs[index]);
