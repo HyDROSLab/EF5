@@ -18,9 +18,6 @@ See [manual.html](manual.html) for the EF5 operating manual which describes conf
 Clone the source code from GitHub.   
 1. autoreconf --force --install   
 2. ./configure   
-
-This sets up the system, if you have a path where you would like to install the files then use ./configure --prefix=/path/to/someplace   
-
 3. make   
    This compiles the EF5 application!
 
@@ -35,12 +32,10 @@ Currently cross-compiling from Linux is the recommended way of generating Window
 Clone the source code from GitHub.
 
 1. autoreconf --force --install
-2. For 32-bit Windows installations use ./configure --host=i686-w64-mingw32
-
+2. For 32-bit Windows installations use ./configure --host=i686-w64-mingw32   
    For 64-bit Windows installations use ./configure --host=x86_64-w64-mingw32
 
-3. make
-
+3. make   
    This compiles the EF5 application!
 
 ## Contributors
