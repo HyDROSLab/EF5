@@ -1,8 +1,6 @@
 language: cpp
 git:
   depth: 3
-compiler:
-- gcc
 matrix:
   include:
   - os: linux
@@ -11,7 +9,7 @@ matrix:
     compiler: clang
   - os: linux
     compiler: gcc
-    end: CROSS=mingw64
+    env: CROSS=mingw64
 before_install: |-
   if [ "$CROSS" == "mingw64" ]
   then
