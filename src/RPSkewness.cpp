@@ -592,7 +592,7 @@ bool ReadLP3File(char *file, std::vector<GridNode> *nodes, std::vector<float> *l
         // We have two options now... Either the grid & the basic grids are the same
         // Or they are different!
 
-        if (true) {//g_DEM->IsSpatialMatch(grid)) {
+        if (g_DEM->IsSpatialMatch(grid)) {
 		printf("Loading exact match LP3 grid %s\n", file);
                 // The grids are the same! Our life is easy!
                 for (size_t i = 0; i < nodes->size(); i++) {

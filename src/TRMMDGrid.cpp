@@ -48,7 +48,7 @@ FloatGrid *ReadFloatTRMMDGrid(char *file, FloatGrid *grid) {
   }
   
   for (long i = 0; i < grid->numRows; i++) {
-    if (gzread(fileH, shortData, sizeof(float) * grid->numCols) != sizeof(short) * grid->numCols) {
+    if (gzread(fileH, shortData, (unsigned int)(sizeof(float) * grid->numCols)) != sizeof(short) * grid->numCols) {
       WARNING_LOGF("TRMM Daily file %s corrupt?", file);
       delete grid;
       delete [] shortData;

@@ -482,7 +482,7 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
   // Get caliGaugeIndex
   for (size_t i = 0; i < gauges->size(); i++) {
     if (caliGauge == gauges->at(i)) {
-      caliGaugeIndex = i;
+      caliGaugeIndex = (int)i;
       break;
     }
   }
@@ -1781,7 +1781,7 @@ bool Simulator::LoadSavedForcings(char *file, bool cali) {
   
   INFO_LOGF("Loading saved binary forcing file, %s!", file);
   
-  int numDataPoints;
+  size_t numDataPoints;
   if (!wbModel->IsLumped()) {
     numDataPoints = nodes.size();
   } else {
@@ -1793,12 +1793,12 @@ bool Simulator::LoadSavedForcings(char *file, bool cali) {
     std::vector<float> *tempVec = NULL;
     precipVec->resize(numDataPoints);
     petVec->resize(numDataPoints);
-    gzread(filep, &(precipVec->at(0)), sizeof(float) * numDataPoints);
-    gzread(filep, &(petVec->at(0)), sizeof(float) * numDataPoints);
+    gzread(filep, &(precipVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
+    gzread(filep, &(petVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
     if (sModel) {
       tempVec = &(currentTempCali[tsIndex]);
       tempVec->resize(numDataPoints);
-      gzread(filep, &(tempVec->at(0)), sizeof(float) * numDataPoints);
+      gzread(filep, &(tempVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
     }
   }
   
@@ -1826,9 +1826,9 @@ void Simulator::SaveForcings(char *file) {
   gzwrite(filep, &totalTimeSteps, sizeof(totalTimeSteps));
   int numDataPoints;
   if (!wbModel->IsLumped()) {
-    numDataPoints = nodes.size();
+    numDataPoints = (int)nodes.size();
   } else {
-    numDataPoints = gauges->size();
+    numDataPoints = (int)gauges->size();
   }
   for (size_t tsIndex = 0; tsIndex < totalTimeSteps; tsIndex++) {
     std::vector<float> *precipVec = &(currentPrecipCali[tsIndex]);
