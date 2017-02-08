@@ -194,7 +194,7 @@ void ExecuteCalibrationDREAMEns(EnsTaskConfigSection *task) {
   
 	char buffer[CONFIG_MAX_LEN*2];
 	std::vector<TaskConfigSection *> *tasks = task->GetTasks();
-	int numMembers = tasks->size();
+	int numMembers = (int)tasks->size();
 	int numParams = 0;
   
 	std::vector<Simulator> sims;

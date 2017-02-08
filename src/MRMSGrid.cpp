@@ -100,9 +100,9 @@ FloatGrid *ReadFloatMRMSGrid(char *file, FloatGrid *grid) {
       return NULL;
     }
     grid->noData = -999.0;
-    const long numRows = grid->numRows;
+    const int numRows = (int)grid->numRows;
     const int nX = header.nx;
-    for (long i = 0; i < numRows; i++) {
+    for (int i = 0; i < numRows; i++) {
       int realI = numRows - i - 1;
       int index = realI*nX;
       grid->data[i] = &(backingStore[index]);

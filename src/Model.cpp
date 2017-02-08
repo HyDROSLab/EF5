@@ -37,82 +37,90 @@ const char *modelCaliParamStrings[] = {
 
 // Order of models must match that in Models.tbl
 
+namespace paramStrings {
+  const char *HP[] = {
+#undef ADDPARAMHP
+#define ADDPARAMHP(a, b) a,
+#include "Models.tbl"
+#undef ADDPARAMHP
+#define ADDPARAMHP(a, b)
+  };
+  
+  const char *CREST[] = {
+#undef ADDPARAMCREST
+#define ADDPARAMCREST(a, b) a,
+#include "Models.tbl"
+#undef ADDPARAMCREST
+#define ADDPARAMCREST(a, b)
+  };
+  
+  const char *HYMOD[] = {
+#undef ADDPARAMHYMOD
+#define ADDPARAMHYMOD(a, b) a,
+#include "Models.tbl"
+#undef ADDPARAMHYMOD
+#define ADDPARAMHYMOD(a, b)
+  };
+  
+  const char *SAC[] = {
+#undef ADDPARAMSAC
+#define ADDPARAMSAC(a, b) a,
+#include "Models.tbl"
+#undef ADDPARAMSAC
+#define ADDPARAMSAC(a, b)
+  };
+  
+}
+
 const char **modelParamStrings[] = {
-	(const char *[]){
-                #undef ADDPARAMHP
-                #define ADDPARAMHP(a, b) a,
-                #include "Models.tbl"
-                #undef ADDPARAMHP
-                #define ADDPARAMHP(a, b)
-
-        },
-
-	(const char *[]){
-		#undef ADDPARAMCREST
-		#define ADDPARAMCREST(a, b) a,
-		#include "Models.tbl"
-		#undef ADDPARAMCREST
-		#define ADDPARAMCREST(a, b)
-	
-	},
-
-	(const char *[]){
-                #undef ADDPARAMHYMOD
-                #define ADDPARAMHYMOD(a, b) a,
-                #include "Models.tbl"
-                #undef ADDPARAMHYMOD
-                #define ADDPARAMHYMOD(a, b)
-
-        },
-
-	(const char *[]){
-                #undef ADDPARAMSAC
-                #define ADDPARAMSAC(a, b) a,
-                #include "Models.tbl"
-                #undef ADDPARAMSAC
-                #define ADDPARAMSAC(a, b)
-
-        },
+  paramStrings::HP,
+  paramStrings::CREST,
+  paramStrings::HYMOD,
+  paramStrings::SAC,
 
 };
 
 // Order of models must match that in Models.tbl
 
+namespace paramGridStrings {
+  const char *HP[] = {
+#undef ADDPARAMHP
+#define ADDPARAMHP(a, b) a"_grid",
+#include "Models.tbl"
+#undef ADDPARAMHP
+#define ADDPARAMHP(a, b)
+  };
+  
+  const char *CREST[] = {
+#undef ADDPARAMCREST
+#define ADDPARAMCREST(a, b) a"_grid",
+#include "Models.tbl"
+#undef ADDPARAMCREST
+#define ADDPARAMCREST(a, b)
+  };
+  
+  const char *HYMOD[] = {
+#undef ADDPARAMHYMOD
+#define ADDPARAMHYMOD(a, b) a"_grid",
+#include "Models.tbl"
+#undef ADDPARAMHYMOD
+#define ADDPARAMHYMOD(a, b)
+  };
+  
+  const char *SAC[] = {
+#undef ADDPARAMSAC
+#define ADDPARAMSAC(a, b) a"_grid",
+#include "Models.tbl"
+#undef ADDPARAMSAC
+#define ADDPARAMSAC(a, b)
+  };
+}
+
 const char **modelParamGridStrings[] = {
-	(const char *[]){
-    #undef ADDPARAMHP
-    #define ADDPARAMHP(a, b) a"_grid",
-    #include "Models.tbl"
-    #undef ADDPARAMHP
-    #define ADDPARAMHP(a, b)
-  },
-
-        (const char *[]){
-		#undef ADDPARAMCREST
-		#define ADDPARAMCREST(a, b) a"_grid",
-		#include "Models.tbl"
-		#undef ADDPARAMCREST
-		#define ADDPARAMCREST(a, b)
-
-	},
-
-	(const char *[]){
-		#undef ADDPARAMHYMOD
-		#define ADDPARAMHYMOD(a, b) a"_grid",
-		#include "Models.tbl"
-		#undef ADDPARAMHYMOD
-		#define ADDPARAMHYMOD(a, b)
-
-	},
-
-	(const char *[]){
-		#undef ADDPARAMSAC
-		#define ADDPARAMSAC(a, b) a"_grid",
-		#include "Models.tbl"
-		#undef ADDPARAMSAC
-		#define ADDPARAMSAC(a, b)
-	},
-
+  paramGridStrings::HP,
+  paramGridStrings::CREST,
+  paramGridStrings::HYMOD,
+  paramGridStrings::SAC
 };
 
 
@@ -150,45 +158,57 @@ const char *routeCaliParamStrings[] = {
 #define ADDROUTE(a, b)
 };
 
-const char **routeParamStrings[] = {
-	(const char *[]){
+namespace paramRouteStrings {
+  const char *LINEAR[] = {
 #undef ADDPARAMLINEAR
 #define ADDPARAMLINEAR(a, b) a,
 #include "Models.tbl"
 #undef ADDPARAMLINEAR
 #define ADDPARAMLINEAR(a, b)
     
-	},
+  };
   
-	(const char *[]){
+  const char *KINEMATIC[] = {
 #undef ADDPARAMKINEMATIC
 #define ADDPARAMKINEMATIC(a, b) a,
 #include "Models.tbl"
 #undef ADDPARAMKINEMATIC
 #define ADDPARAMKINEMATIC(a, b)
     
-  },
+  };
+  
+}
+
+
+const char **routeParamStrings[] = {
+  paramRouteStrings::LINEAR,
+  paramRouteStrings::KINEMATIC,
 
 };
 
-const char **routeParamGridStrings[] = {
-  (const char *[]){
+namespace paramRouteGridStrings {
+  const char *LINEAR[] = {
 #undef ADDPARAMLINEAR
 #define ADDPARAMLINEAR(a, b) a"_grid",
 #include "Models.tbl"
 #undef ADDPARAMLINEAR
 #define ADDPARAMLINEAR(a, b)
     
-	},
+  };
   
-	(const char *[]){
+  const char *KINEMATIC[] = {
 #undef ADDPARAMKINEMATIC
 #define ADDPARAMKINEMATIC(a, b) a"_grid",
 #include "Models.tbl"
 #undef ADDPARAMKINEMATIC
 #define ADDPARAMKINEMATIC(a, b)
     
-	},
+  };
+}
+  
+const char **routeParamGridStrings[] = {
+  paramRouteGridStrings::LINEAR,
+  paramRouteGridStrings::KINEMATIC,
 };
 
 const int numRouteParams[] = {
@@ -225,27 +245,35 @@ const char *snowCaliParamStrings[] = {
 #undef ADDSNOW
 #define ADDSNOW(a, b)
 };
-
-const char **snowParamStrings[] = {
-  (const char *[]){
+  
+namespace paramSnowStrings {
+  const char *SNOW17[] = {
 #undef ADDPARAMSNOW17
 #define ADDPARAMSNOW17(a, b) a,
 #include "Models.tbl"
 #undef ADDPARAMSNOW17
 #define ADDPARAMSNOW17(a, b)
     
-  },
+  };
+}
+  
+
+const char **snowParamStrings[] = {
+  paramSnowStrings::SNOW17,
 };
 
-const char **snowParamGridStrings[] = {
-  (const char *[]){
+namespace paramSnowGridStrings {
+    const char *SNOW17[] = {
 #undef ADDPARAMSNOW17
 #define ADDPARAMSNOW17(a, b) a"_grid",
 #include "Models.tbl"
 #undef ADDPARAMSNOW17
 #define ADDPARAMSNOW17(a, b)
-    
-  },
+    };
+}
+  
+const char **snowParamGridStrings[] = {
+  paramSnowGridStrings::SNOW17,
   
 };
 
@@ -281,44 +309,50 @@ const char *inundationCaliParamStrings[] = {
 #define ADDINUNDATION(a, b)
 };
 
-const char **inundationParamStrings[] = {
-  (const char *[]){
+namespace paramInundationStrings {
+  const char *SI[] = {
 #undef ADDPARAMSI
 #define ADDPARAMSI(a, b) a,
 #include "Models.tbl"
 #undef ADDPARAMSI
 #define ADDPARAMSI(a, b)
-
-  },
-
-	(const char *[]){
+  };
+  
+  const char *VCI[] = {
 #undef ADDPARAMVCI
 #define ADDPARAMVCI(a, b) a,
 #include "Models.tbl"
 #undef ADDPARAMVCI
 #define ADDPARAMVCI(a, b)
+  };
+}
 
-  },
+const char **inundationParamStrings[] = {
+  paramInundationStrings::SI,
+  paramInundationStrings::VCI,
 };
 
-const char **inundationParamGridStrings[] = {
-  (const char *[]){
+namespace paramInundationGridStrings {
+  const char *SI[] = {
 #undef ADDPARAMSI
 #define ADDPARAMSI(a, b) a"_grid",
 #include "Models.tbl"
 #undef ADDPARAMSI
 #define ADDPARAMSI(a, b)
-
-  },
-
-	(const char *[]){
+  };
+  
+  const char *VCI[] = {
 #undef ADDPARAMVCI
 #define ADDPARAMVCI(a, b) a"_grid",
 #include "Models.tbl"
 #undef ADDPARAMVCI
 #define ADDPARAMVCI(a, b)
+  };
+}
 
-  },
+const char **inundationParamGridStrings[] = {
+  paramInundationGridStrings::SI,
+  paramInundationGridStrings::VCI,
 
 };
 
