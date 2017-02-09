@@ -5,8 +5,8 @@ matrix:
   include:
   - os: linux
     compiler: gcc
-#  - os: linux
-#    compiler: clang
+  - os: linux
+    compiler: clang
   - os: linux
     compiler: gcc
     env: CROSS=mingw64
