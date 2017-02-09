@@ -94,6 +94,7 @@ private:
   std::vector<std::vector<float> > peakVals;
   GridWriterFull gridWriter;
   float numYears;
+  int missingQPE, missingQPF;
   
   // This is for calibrations only
   std::vector<std::vector<float> > currentPrecipCali, currentPETCali, currentTempCali;
