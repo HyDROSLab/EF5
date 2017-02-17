@@ -46,7 +46,7 @@ void InitVar(struct DREAM_Parameters *pstPar, struct DREAM_Variables **pstRUN, s
  allocate2D(&(*pstOutput)->R_stat, floorf((*pstRUN)->Nelem / pstPar->steps)+buffer, pstPar->n + 1);
  
  //Outlier
- allocate2D(&(*pstOutput)->outlier, pstPar->ndraw + 1, 2);
+ allocate2D(&(*pstOutput)->outlier, (int)(pstPar->ndraw + 1), 2);
 
  //if pCR = 'Update'
  //Calculate multinomial probabilities of each of the nCR CR values

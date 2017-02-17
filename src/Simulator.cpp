@@ -286,7 +286,10 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
 bool Simulator::InitializeSimu(TaskConfigSection *task) {
   
   char buffer[CONFIG_MAX_LEN*2];
-  
+ 
+   missingQPE = 0;
+   missingQPF = 0;
+ 
   griddedOutputs = task->GetGriddedOutputs();
   useStates = task->UseStates();
   saveStates = task->SaveStates();
@@ -482,7 +485,7 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
   // Get caliGaugeIndex
   for (size_t i = 0; i < gauges->size(); i++) {
     if (caliGauge == gauges->at(i)) {
-      caliGaugeIndex = i;
+      caliGaugeIndex = (int)i;
       break;
     }
   }
@@ -809,6 +812,11 @@ int Simulator::LoadForcings(PrecipReader *precipReader, PETReader *petReader, Te
         outputError = true;
 #endif
         NORMAL_LOGF(" Missing precip file(%s%s%s)... Assuming zeros.", buffer, (!hasQPF)?"":"; ", (!hasQPF)?"":qpfBuffer);
+	if (inLR) {
+		missingQPF = missingQPF + 1;
+	} else {
+		missingQPE = missingQPE + 1;
+	}	
       } else if (hasQPF) {
         retVal = 1;
       }
@@ -1215,6 +1223,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   
 #if _OPENMP
   double timeTotal = 0.0, timeCount = 0.0;
+  double simStartTime = omp_get_wtime();
 #endif
   
   // This is the temporal loop for each time step
@@ -1372,7 +1381,11 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       
       if ((griddedOutputs & OG_Q) == OG_Q) {
         sprintf(buffer, "%s/q.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
-        gridWriter.WriteGrid(&nodes, &currentQ, buffer, false);
+	for (size_t i = 0; i < currentQ.size(); i++) {
+        	float val = floorf(currentQ[i] * 10.0f + 0.5f) / 10.0f;
+        	currentDepth[i] = val;
+    	}
+        gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
@@ -1406,6 +1419,8 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       if ((griddedOutputs & OG_UNITQ) == OG_UNITQ) {
         for (size_t i = 0; i < currentQ.size(); i++) {
           currentDepth[i] = currentQ[i] / nodes[i].contribArea;
+	  float val = floorf(currentDepth[i] * 10.0f + 0.5f) / 10.0f;
+      	  currentDepth[i] = val;
         }
         sprintf(buffer, "%s/unitq.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
@@ -1530,6 +1545,20 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     sprintf(buffer, "%s/qpfaccum.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
     gridWriter.WriteGrid(&nodes, &qpfAccum, buffer, false);
   }
+
+#if _OPENMP
+    double simEndTime = omp_get_wtime();
+    double timeDiff = simEndTime - simStartTime;
+#endif
+
+  sprintf(buffer, "%s/results.json", task->GetOutput());
+  FILE *fp = fopen(buffer, "w");
+  fprintf(fp, "{\n\"missingQPE\": %i,\n\"missingQPF\": %i", missingQPE, missingQPF);
+#if _OPENMP
+  fprintf(fp, ",\n\"runTimeSeconds\": %f", timeDiff);
+#endif
+  fprintf(fp, "\n%s", "}");
+  fclose(fp);
   
 }
 
@@ -1781,7 +1810,7 @@ bool Simulator::LoadSavedForcings(char *file, bool cali) {
   
   INFO_LOGF("Loading saved binary forcing file, %s!", file);
   
-  int numDataPoints;
+  size_t numDataPoints;
   if (!wbModel->IsLumped()) {
     numDataPoints = nodes.size();
   } else {
@@ -1793,12 +1822,12 @@ bool Simulator::LoadSavedForcings(char *file, bool cali) {
     std::vector<float> *tempVec = NULL;
     precipVec->resize(numDataPoints);
     petVec->resize(numDataPoints);
-    gzread(filep, &(precipVec->at(0)), sizeof(float) * numDataPoints);
-    gzread(filep, &(petVec->at(0)), sizeof(float) * numDataPoints);
+    gzread(filep, &(precipVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
+    gzread(filep, &(petVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
     if (sModel) {
       tempVec = &(currentTempCali[tsIndex]);
       tempVec->resize(numDataPoints);
-      gzread(filep, &(tempVec->at(0)), sizeof(float) * numDataPoints);
+      gzread(filep, &(tempVec->at(0)), (unsigned int)(sizeof(float) * numDataPoints));
     }
   }
   
@@ -1826,9 +1855,9 @@ void Simulator::SaveForcings(char *file) {
   gzwrite(filep, &totalTimeSteps, sizeof(totalTimeSteps));
   int numDataPoints;
   if (!wbModel->IsLumped()) {
-    numDataPoints = nodes.size();
+    numDataPoints = (int)nodes.size();
   } else {
-    numDataPoints = gauges->size();
+    numDataPoints = (int)gauges->size();
   }
   for (size_t tsIndex = 0; tsIndex < totalTimeSteps; tsIndex++) {
     std::vector<float> *precipVec = &(currentPrecipCali[tsIndex]);

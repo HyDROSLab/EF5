@@ -107,7 +107,7 @@ void KWRoute::InitializeStates(TimeVar *beginTime, char *statePath, std::vector<
     FloatGrid *sGrid = ReadFloatTifGrid(buffer);
     if (sGrid) {
       printf("Using Kinematic Wave Routing %s State Grid %s\n", stateStrings[p], buffer);
-      if (true) {//g_DEM->IsSpatialMatch(sGrid)) {
+      if (g_DEM->IsSpatialMatch(sGrid)) {
         for (size_t i = 0; i < nodes->size(); i++) {
           GridNode *node = &nodes->at(i);
           KWGridNode *cNode = &(kwNodes[i]);

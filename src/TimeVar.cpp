@@ -88,22 +88,22 @@ bool TimeVar::LoadTimeExcel(char *time) {
 		if (len > 16) {
 			time[16] = ' ';
 		}
-		month = strtol(time, &end, 10);
+		month = (int)strtol(time, &end, 10);
 		if (*end != '\0') {
 			num++;
-			day = strtol(end, &end, 10);
+			day = (int)strtol(end, &end, 10);
 			if (*end != '\0') {
 				num++;
-				year = strtol(end, &end, 10);
+				year = (int)strtol(end, &end, 10);
 				if (*end != '\0') {
 					num++;
-					hour = strtol(end, &end, 10);
+					hour = (int)strtol(end, &end, 10);
 					if (*end != '\0') {
 						num++;
-						minute = strtol(end, &end, 10);
+						minute = (int)strtol(end, &end, 10);
 						if (*end != '\0') {
 							num++;	
-							second = strtol(end, &end, 10);
+							second = (int)strtol(end, &end, 10);
 						}
 					}
 				}
@@ -122,22 +122,22 @@ bool TimeVar::LoadTimeExcel(char *time) {
     if (len > 16) {
       time[16] = ' ';
     }
-    year = strtol(time, &end, 10);
+    year = (int)strtol(time, &end, 10);
     if (*end != '\0') {
       num++;
-      month = strtol(end, &end, 10);
+      month = (int)strtol(end, &end, 10);
       if (*end != '\0') {
         num++;
-        day = strtol(end, &end, 10);
+        day = (int)strtol(end, &end, 10);
         if (*end != '\0') {
           num++;
-          hour = strtol(end, &end, 10);
+          hour = (int)strtol(end, &end, 10);
           if (*end != '\0') {
             num++;
-            minute = strtol(end, &end, 10);
+            minute = (int)strtol(end, &end, 10);
             if (*end != '\0') {
 							num++;
-              second = strtol(end, &end, 10);
+              second = (int)strtol(end, &end, 10);
             }
           }
         }

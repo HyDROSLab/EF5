@@ -30,7 +30,7 @@ struct FAMSearch {
 static bool GetDownstreamHeight(long x, long y, long *outsideHeight);
 static bool TestUpstream(GridNode *node, FLOW_DIR dir, GridLoc *loc);
 static bool TestUpstream(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc);
-static bool TestUpstreamBroken(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc);
+//static bool TestUpstreamBroken(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc);
 static GaugeConfigSection *FindGauge(std::map<unsigned long, GaugeConfigSection *> *gauges, GridNode *node);
 static GaugeConfigSection *NextUnusedGauge(std::vector<GaugeConfigSection *> *gauges);
 static bool SortByFlowAccumFS(FAMSearch *fs1, FAMSearch *fs2);
@@ -208,8 +208,8 @@ void FindIndBasins(float left, float right, float top, float bottom) {
 	std::stack<GridLoc *> walkNodes;
 	std::vector<std::list<FAMSearch *>::iterator> gcItrs;
   
-	int totalElements = g_DEM->numCols * g_DEM->numRows;
-	printf("Total elements in gcItrs is %i\n", totalElements);
+	long totalElements = g_DEM->numCols * g_DEM->numRows;
+	printf("Total elements in gcItrs is %li\n", totalElements);
 	gcItrs.resize(totalElements);
 	for (long e = 0; e < totalElements; e++) {
 		gcItrs[e] = gridCells.end();
@@ -1072,6 +1072,7 @@ bool TestUpstream(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc) {
 	return false;
 }
 
+#if 0
 bool TestUpstreamBroken(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc) {
   FLOW_DIR wantDir;
   
@@ -1126,6 +1127,7 @@ bool TestUpstreamBroken(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc) {
   
   return false;
 }
+#endif
 
 GaugeConfigSection *FindGauge(std::map<unsigned long, GaugeConfigSection *> *gauges, GridNode *node) {
  
@@ -1263,7 +1265,7 @@ void ReclassifyDDM() {
 }
 
 void FixFAM() {
-	GridLoc locN;
+	//GridLoc locN;
   
 	for (long row = 0; row < g_DEM->numRows; row++) {
     for (long col = 0; col < g_DEM->numCols; col++) {
@@ -1277,6 +1279,7 @@ void FixFAM() {
   
 	return;
   
+  /*
 	for (long row = 0; row < g_FAM->numRows; row++) {
     for (long col = 0; col < g_FAM->numCols; col++) {
 			if (g_FAM->data[row][col] != g_FAM->noData) {
@@ -1292,7 +1295,7 @@ void FixFAM() {
 			}
 		}
     
-	}
+	}*/
 }
 
 int FlowsOut(long nextX, long nextY, FLOW_DIR dir, long currentHeight) {

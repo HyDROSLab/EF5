@@ -50,7 +50,7 @@ FloatGrid *ReadFloatTRMMRTGrid(char *file, FloatGrid *grid) {
   
   
   for (long i = 0; i < grid->numRows; i++) {
-    if (gzread(fileH, shortData, sizeof(short) * grid->numCols) != (int)sizeof(short) * grid->numCols) {
+    if (gzread(fileH, shortData, (unsigned int)(sizeof(short) * grid->numCols)) != (int)sizeof(short) * grid->numCols) {
       WARNING_LOGF("TRMMRT file %s corrupt?", file);
       delete grid;
       delete [] shortData;
