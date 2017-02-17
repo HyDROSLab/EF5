@@ -34,20 +34,20 @@ before_install: |-
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
     sed -e s/"PREFIX ="/"PREFIX = x86_64-w64-mingw32-"/ -i win32/Makefile.gcc
-    BINARY_PATH=/usr/x86_64-w64-mingw32/bin INCLUDE_PATH=/usr/x86_64-w64-mingw32/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/lib make -f win32/Makefile.gcc
-    BINARY_PATH=/usr/x86_64-w64-mingw32/bin INCLUDE_PATH=/usr/x86_64-w64-mingw32/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/lib sudo -E make -f win32/Makefile.gcc install
+    BINARY_PATH=/usr/local/bin INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/local/lib make -f win32/Makefile.gcc
+    BINARY_PATH=/usr/local/bin INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/local/lib sudo -E make -f win32/Makefile.gcc install
     cd
     wget http://libtiff.maptools.org/dl/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
-    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/local/
     make
     sudo make install
     cd
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/local/
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
