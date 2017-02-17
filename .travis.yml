@@ -15,6 +15,19 @@ before_install: |-
   then
     sudo apt-get update -qq
     sudo apt-get install -qq gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
+    wget http://download.osgeo.org/proj/proj-4.9.3.tar.gz
+    tar zxvf proj-4.9.3.tar.gz
+    cd proj-4.9.3
+    ./configure --host=x86_64-w64-mingw32
+    make
+    sudo make install
+    cd
+    wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
+    tar zxvf libgeotiff-1.4.2.tar.gz
+    ./configure --host=x86_64-w64-mingw32
+    make
+    sudo make install
+    cd
   else
     sudo apt-get update -qq
     sudo apt-get install -qq libgeotiff-dev
