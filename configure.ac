@@ -8,9 +8,9 @@ AC_SUBST(OPENMP_CFLAGS)
 AC_CANONICAL_HOST
 case $host_os in
     *mingw*)
-        CFLAGS="$CFLAGS -static -static-libgcc -I/usr/local/include"
-        CXXFLAGS="$CXXFLAGS -static -static-libgcc -I/usr/local/include"
-        LDFLAGS="$LDFLAGS -static -static-libgcc -L/usr/local/lib"
+        CFLAGS="$CFLAGS -static -static-libgcc -I/usr/include"
+        CXXFLAGS="$CXXFLAGS -static -static-libgcc -I/usr/include"
+        LDFLAGS="$LDFLAGS -static -static-libgcc -L/usr/lib"
 	WINDOWS=yes
 	AC_CHECK_TOOL(WINDRES, windres, no)	
         ;;
