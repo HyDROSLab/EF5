@@ -8,8 +8,8 @@ matrix:
   - os: linux
     compiler: clang
   - os: linux
-    compiler: gcc
-    env: CROSS=mingw64
+    compiler: x86_64-w64-mingw32-gcc
+    env: CROSS=mingw64 PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64"
 before_install: |-
   if [ "$CROSS" == "mingw64" ]
   then

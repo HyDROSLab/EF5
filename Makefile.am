@@ -11,7 +11,7 @@ config_FILES = src/BasicConfigSection.cpp src/PrecipConfigSection.cpp src/PETCon
 input_FILES = src/RPSkewness.cpp src/TimeSeries.cpp src/PETReader.cpp src/PrecipReader.cpp src/TempReader.cpp src/TifGrid.cpp src/BifGrid.cpp src/AscGrid.cpp src/BasicGrids.cpp src/TRMMRTGrid.cpp src/MRMSGrid.cpp src/GridWriter.cpp src/GridWriterFull.cpp src/GriddedOutput.cpp
 model_FILES = src/Model.cpp src/CRESTModel.cpp src/HyMOD.cpp src/SAC.cpp src/LinearRoute.cpp src/KinematicRoute.cpp src/ObjectiveFunc.cpp src/Simulator.cpp src/ARS.cpp src/DREAM.cpp src/dream_functions.cpp src/misc_functions.cpp src/Snow17Model.cpp src/HPModel.cpp src/SimpleInundation.cpp src/VCInundation.cpp
 if WINDOWS
-AM_CXXFLAGS= -Wall -mwindows ${OPENMP_CFLAGS} -fopenmp
+AM_CXXFLAGS= -Wall -mwindows ${OPENMP_CFLAGS}
 __top_builddir__bin_ef5_SOURCES = $(unit_FILES) $(type_FILES) $(config_FILES) $(input_FILES) $(model_FILES) src/ExecutionController.cpp src/EF5Windows.cpp src/ef5.rc
 else
 AM_CXXFLAGS= -Wall -Werror ${OPENMP_CFLAGS}
