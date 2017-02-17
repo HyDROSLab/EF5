@@ -17,7 +17,7 @@ matrix:
          - libgeotiff-dev
   - os: linux
     compiler: x86_64-w64-mingw32-gcc
-    env: CROSS=mingw64 PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64"
+    env: CROSS=mingw64 PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64" CXX=x86_64-w64-mingw32-g++ CC=x86_64-w64-mingw32-gcc
     addons:
       apt:
         packages:
