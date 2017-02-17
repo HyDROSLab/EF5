@@ -40,14 +40,14 @@ before_install: |-
     wget http://libtiff.maptools.org/dl/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
-    ./configure --host=x86_64-w64-mingw32
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/
     make
     sudo make install
     cd
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    ./configure --host=x86_64-w64-mingw32 --without-proj
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
