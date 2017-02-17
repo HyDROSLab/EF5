@@ -17,7 +17,7 @@ matrix:
          - libgeotiff-dev
   - os: linux
     compiler: x86_64-w64-mingw32-gcc
-    env: CROSS=mingw64 PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64" CXX=x86_64-w64-mingw32-g++ CC=x86_64-w64-mingw32-gcc
+    env: CROSS=mingw64 PLATFORM="mingw32" ARCH="x86_64" BITSIZE=64 HOST="x86_64"
     addons:
       apt:
         packages:
@@ -28,6 +28,8 @@ matrix:
 before_install: |-
   if [ "$CROSS" == "mingw64" ]
   then
+    export CC=x86_64-w64-mingw32-gcc
+    export CXX=x86_64-w64-mingw32-g++
     wget http://zlib.net/zlib-1.2.11.tar.gz
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
