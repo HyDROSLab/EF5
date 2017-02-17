@@ -18,8 +18,8 @@ before_install: |-
     wget http://zlib.net/zlib-1.2.11.tar.gz
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
-    make -f win32/Makefile.gcc
-    sudo make -f win32/Makefile.gcc install
+    BINARY_PATH=/usr/x86_64-w64-mingw32/bin INCLUDE_PATH=/usr/x86_64-w64-mingw32/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/lib make -f win32/Makefile.gcc
+    BINARY_PATH=/usr/x86_64-w64-mingw32/bin INCLUDE_PATH=/usr/x86_64-w64-mingw32/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/lib sudo -E make -f win32/Makefile.gcc install
     cd
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
@@ -27,7 +27,7 @@ before_install: |-
     ./configure --host=x86_64-w64-mingw32 --without-proj
     make
     sudo make install
-    cd
+    cd $TRAVIS_BUILD_DIR
   else
     sudo apt-get update -qq
     sudo apt-get install -qq libgeotiff-dev
