@@ -15,13 +15,6 @@ before_install: |-
   then
     sudo apt-get update -qq
     sudo apt-get install -qq gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 binutils-mingw-w64-x86-64 mingw-w64-dev
-#    wget http://download.osgeo.org/proj/proj-4.9.3.tar.gz
-#    tar zxf proj-4.9.3.tar.gz
-#    cd proj-4.9.3
-#    ./configure --host=x86_64-w64-mingw32
-#    make
-#    sudo make install
-#    cd
     wget http://zlib.net/zlib-1.2.11.tar.gz
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
