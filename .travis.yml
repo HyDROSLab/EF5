@@ -22,14 +22,14 @@ before_install: |-
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
     sed -e s/"PREFIX ="/"PREFIX = x86_64-w64-mingw32-"/ -i win32/Makefile.gcc
-    INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/local/lib BINARY_PATH=/usr/local/bin make -f win32/Makefile.gcc
-    sudo INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/local/lib BINARY_PATH=/usr/local/bin make -f win32/Makefile.gcc install
+    make -f win32/Makefile.gcc
+    sudo INCLUDE_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib BINARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/bin make -f win32/Makefile.gcc install
     cd
     wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
     ./autogen.sh
-    ./configure --host=x86_64-w64-mingw32 --prefix=/usr --with-zlib=/usr/local
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
     make
     sudo make install
     cd
@@ -37,7 +37,7 @@ before_install: |-
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
     ./autogen.sh
-    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr --with-tiff=/usr --with-zlib=/usr/local
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
