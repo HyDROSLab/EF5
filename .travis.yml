@@ -13,6 +13,7 @@ matrix:
          - g++-mingw-w64-x86-64
          - binutils-mingw-w64-x86-64
          - mingw-w64-dev
+         - zlib1g-dev
 before_install: |-
   if [ "$CROSS" == "mingw64" ]
   then
@@ -23,12 +24,12 @@ before_install: |-
     cd zlib-1.2.11
     sed -e s/"PREFIX ="/"PREFIX = x86_64-w64-mingw32-"/ -i win32/Makefile.gcc
     make -f win32/Makefile.gcc
-    sudo INCLUDE_PATH=/usr/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib BINARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/bin make -f win32/Makefile.gcc install
+    sudo INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib BINARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/bin make -f win32/Makefile.gcc install
     cd
     wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
-    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --disable-shared --enable-static --with-zlib-include-dir=/usr/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --disable-shared --enable-static --with-zlib-include-dir=/usr/local/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
     make
     sudo make install
     cd
