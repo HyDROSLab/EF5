@@ -36,7 +36,7 @@ before_install: |-
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --with-libtiff=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-static --with-zlib=/usr/x86_64-w64-mingw32/sys-root/mingw
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --with-libtiff=/usr/x86_64-w64-mingw32/sys-root/mingw --disable-shared --enable-static
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
