@@ -34,12 +34,13 @@ before_install: |-
     tar zxf zlib-1.2.11.tar.gz
     cd zlib-1.2.11
     sed -e s/"PREFIX ="/"PREFIX = x86_64-w64-mingw32-"/ -i win32/Makefile.gcc
-    BINARY_PATH=/usr/bin INCLUDE_PATH=/usr/include LIBRARY_PATH=/usr/lib make -f win32/Makefile.gcc
-    BINARY_PATH=/usr/bin INCLUDE_PATH=/usr/include LIBRARY_PATH=/usr/lib sudo -E make -f win32/Makefile.gcc install
+    make -f win32/Makefile.gcc
+    sudo make -f win32/Makefile.gcc install
     cd
     wget http://libtiff.maptools.org/dl/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
+    ./autogen.sh
     ./configure --host=x86_64-w64-mingw32 --prefix=/usr
     make
     sudo make install
@@ -47,6 +48,7 @@ before_install: |-
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
+    ./autogen.sh
     ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr
     make
     sudo make install
