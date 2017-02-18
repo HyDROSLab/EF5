@@ -36,8 +36,10 @@ before_install: |-
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    export CFLAGS="-I/usr/local/include"
-    export LDFLAGS="-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib"
+    export CXXFLAGS="-I/usr/local/include $CXXFLAGS"
+    export CPPFLAGS="-I/usr/local/include $CPPFLAGS"
+    export CFLAGS="-I/usr/local/include $CFLAGS"
+    export LDFLAGS="-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
     ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --with-libtiff=/usr/x86_64-w64-mingw32/sys-root/mingw --disable-shared --enable-static
     make
     sudo make install
