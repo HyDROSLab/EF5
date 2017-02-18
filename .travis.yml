@@ -28,15 +28,13 @@ before_install: |-
     wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
-    ./autogen.sh
-    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --disable-shared --enable-static --with-zlib-include-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
     make
     sudo make install
     cd
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    ./autogen.sh
     ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
     make
     sudo make install
