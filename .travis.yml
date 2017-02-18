@@ -36,11 +36,11 @@ before_install: |-
     wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
     tar zxf libgeotiff-1.4.2.tar.gz
     cd libgeotiff-1.4.2
-    export CXXFLAGS="-I/usr/local/include $CXXFLAGS"
-    export CPPFLAGS="-I/usr/local/include $CPPFLAGS"
-    export CFLAGS="-I/usr/local/include $CFLAGS"
+    export CXXFLAGS="-I/usr/local/include -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CXXFLAGS"
+    export CFLAGS="-I/usr/local/include -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CFLAGS"
     export LDFLAGS="-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
-    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-static
+    export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib:$PATH
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-static --with-zip=yes --enable-incode-epsg
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
