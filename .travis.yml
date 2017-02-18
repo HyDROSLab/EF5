@@ -29,7 +29,7 @@ before_install: |-
     wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
     tar zxf tiff-3.8.2.tar.gz
     cd tiff-3.8.2
-    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --disable-shared --enable-static --with-zlib-include-dir=/usr/local/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --enable-static --with-zlib-include-dir=/usr/local/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
     make
     sudo make install
     cd
@@ -40,7 +40,7 @@ before_install: |-
     export CPPFLAGS="-I/usr/local/include $CPPFLAGS"
     export CFLAGS="-I/usr/local/include $CFLAGS"
     export LDFLAGS="-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
-    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --with-libtiff=/usr/x86_64-w64-mingw32/sys-root/mingw --disable-shared --enable-static
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-static
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
