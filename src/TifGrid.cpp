@@ -141,11 +141,9 @@ FloatGrid *ReadFloatTifGrid(const char *file, FloatGrid *incGrid) {
  
   for (long i = 0; i < grid->numRows; i++) {
     if (TIFFReadScanline(tif, grid->data[i], (unsigned int)i, 1) == -1) {
-      WARNING_LOGF("TIF file %s corrupt? (scanline read failed)", file);
-      delete grid;
-      GTIFFree(gtif);
-      XTIFFClose(tif);
-      return NULL;
+	for (long j = 0; j < grid->numCols; j++) {
+        	grid->data[i][j] = grid->noData;
+      	}
     }
   }
   
@@ -181,7 +179,7 @@ void WriteFloatTifGrid(const char *file, FloatGrid *grid, const char *artist, co
   
   TIFFSetField(tif, TIFFTAG_IMAGEWIDTH, grid->numCols);
   TIFFSetField(tif, TIFFTAG_IMAGELENGTH, grid->numRows);
-  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,  20);
+  TIFFSetField(tif, TIFFTAG_ROWSPERSTRIP,  1);
   TIFFSetField(tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_MINISBLACK);
 	char buf[100];
   sprintf(buf, "%f", grid->noData);
