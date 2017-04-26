@@ -8,9 +8,10 @@ AC_SUBST(OPENMP_CFLAGS)
 AC_CANONICAL_HOST
 case $host_os in
     *mingw*)
-        CFLAGS="$CFLAGS -static -static-libgcc -I/usr/local/include"
-        CXXFLAGS="$CXXFLAGS -static -static-libgcc -I/usr/local/include"
-        LDFLAGS="$LDFLAGS -static -static-libgcc -L/usr/local/lib"
+        CFLAGS="-static -static-libgcc -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CFLAGS"
+        CXXFLAGS="-static -static-libgcc -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CXXFLAGS"
+        CPPFLAGS="-static -static-libgcc -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CPPFLAGS"
+        LDFLAGS="-static -static-libgcc -L/usr/x86_64-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
 	WINDOWS=yes
 	AC_CHECK_TOOL(WINDRES, windres, no)	
         ;;
@@ -37,10 +38,10 @@ AC_CHECK_HEADERS(xtiffio.h)
 AC_CHECK_HEADERS(geotiff/xtiffio.h)
 AC_CHECK_HEADERS(libgeotiff/xtiffio.h)
 if test x"$ac_cv_header_geotiff_xtiffio_h" = x"yes"; then
-        CPPFLAGS="-I/usr/include/geotiff";
+        CPPFLAGS="-I/usr/include/geotiff $CPPFLAGS";
 else
         if test x"$ac_cv_header_libgeotiff_xtiffio_h" = x"yes"; then
-                CPPFLAGS="-I/usr/include/libgeotiff";
+                CPPFLAGS="-I/usr/include/libgeotiff $CPPFLAGS";
         else
                 if test x"$ac_cv_header_xtiffio_h" != x"yes"; then
                         AC_MSG_ERROR([xtiffio.h header not found]);

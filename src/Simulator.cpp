@@ -1708,7 +1708,7 @@ void Simulator::PreloadForcings(char *file, bool cali) {
       // therefore only care about averages!
       //
       readVec.resize(nodes.size());
-      std::vector<float> *vec, *vecPrev;
+      std::vector<float> *vec = NULL, *vecPrev = NULL;
       
       sprintf(buffer, "%s/%s", precipSec->GetLoc(), precipFile->GetName());
       vec = &(currentPrecipCali[tsIndex]);

@@ -1,7 +1,72 @@
 language: cpp
 git:
   depth: 3
-before_install:
-- sudo apt-get update -qq
-- sudo apt-get install -qq libgeotiff-dev
-script: autoreconf --force --install && ./configure && make
+matrix:
+  include:
+  - os: linux
+    compiler: x86_64-w64-mingw32-gcc
+    env: CROSS=mingw64
+    addons:
+      apt:
+        packages:
+        - gcc-mingw-w64-x86-64
+        - g++-mingw-w64-x86-64
+        - binutils-mingw-w64-x86-64
+        - mingw-w64-dev
+        - zlib1g-dev
+  - os: linux
+    compiler: gcc
+    addons:
+      apt:
+        packages:
+        - libgeotiff-dev
+deploy:
+  provider: releases
+  api_key:
+    secure: bF9rQo5rxQlKWhg9HgoqJNRYoGJnCiaaZNCcAoR8ZojgBTbk3vCnqRmiEHYAs7yF7SrVEfljec12SN7DQla7Y1WGTh9YrrTW6qzmrRNde18h7TZ6QgBMjz7z5hN0zYFxlaEvavLwi4uoinQWgf8tvMiRVO/SBwF9T7qVrb9/KLwn2LD0ngtJSI/kAPVVGEH3nh2YqmsMKaSjakoPSCm+WyDlscLgBEdXymh3SwWlaV/Mfk+ys59n7RZeV1qpZqB2ibQiI1WDikB460YxVTdz/PigAK0j4DVjPU7MO6jir2ttb2kkJGkMnt5zdcs6XioJCzpTWx6eYE6oE8HI0pgIiAPpBZleU/w76umgQaIsu6esHojhWk096WyNWJWYwO9abMAdM0T84Mf2cP5lUxKic141RTfrffrT40UHjw3Q8+hqXssiXwXMSmGaN9pWdFZ3+L/KgJxMroGM4FHvCROkBBkyj1GmRACWWli/WYxmzXK0pvFLoQvAxJlFkSkzYFqOANeBAui+ejj7y7uEsj9X/q326MOrHucGqK5408RVcOqdNVNP5yt4nyFSuZNhltoFsvJ3S0+EJbBkQ413FYzXzpDk1n2OrQBiAK0sBXGYmfTxqD2lSONIbDGP1s24z2XCVAICF882ji2kIY0jMhOrVlyQNJzIQeD2ixuIplbamk0=
+  file:
+    - ef5_64.zip
+    - ef5.tar.gz
+  on:
+    repo: HyDROSLab/EF5
+    branch: master
+before_install: |-
+  if [ "$CROSS" == "mingw64" ]
+  then
+    export CC=x86_64-w64-mingw32-gcc
+    export CXX=x86_64-w64-mingw32-g++
+    export CXXFLAGS="-I/usr/local/include -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CXXFLAGS"
+    export CFLAGS="-I/usr/local/include -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CFLAGS"
+    export LDFLAGS="-L/usr/x86_64-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
+    export PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib:$PATH
+    wget http://zlib.net/zlib-1.2.11.tar.gz
+    tar zxf zlib-1.2.11.tar.gz
+    cd zlib-1.2.11
+    sed -e s/"PREFIX ="/"PREFIX = x86_64-w64-mingw32-"/ -i win32/Makefile.gcc
+    make -f win32/Makefile.gcc
+    sudo INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib BINARY_PATH=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/bin make -f win32/Makefile.gcc install
+    cd
+    wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
+    tar zxf tiff-3.8.2.tar.gz
+    cd tiff-3.8.2
+    ./configure --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-cxx --enable-static --with-zlib-include-dir=/usr/local/include --with-zlib-lib-dir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib --disable-shared
+    make
+    sudo make install
+    cd
+    wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
+    tar zxf libgeotiff-1.4.2.tar.gz
+    cd libgeotiff-1.4.2
+    ./configure --host=x86_64-w64-mingw32 --without-proj --prefix=/usr/x86_64-w64-mingw32/sys-root/mingw --enable-static --with-zip=yes --enable-incode-epsg --disable-static
+    make
+    sudo make install
+    cd $TRAVIS_BUILD_DIR
+  fi
+script: |-
+  if [ "$CROSS" == "mingw64" ]
+  then
+    autoreconf --force --install && ./configure --host=x86_64-w64-mingw32 && make
+    cd bin && mv ef5.exe ef5_64.exe && zip ef5_win64.zip ef5_64.exe
+  else
+    autoreconf --force --install && ./configure && make
+    cd bin && tar -cf ef5.tar ef5 && gzip ef5.tar
+  fi
