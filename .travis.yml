@@ -22,7 +22,10 @@ matrix:
         - libgeotiff-dev
 jobs:
   include:
+    - script: "Running build 1"
+    - script: "Running build 2"
     - stage: deploy
+      script: echo "Deploying to GitHub"
       deploy:
         skip_cleanup: true
         provider: releases
