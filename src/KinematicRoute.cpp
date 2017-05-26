@@ -387,6 +387,15 @@ void KWRoute::InitializeParameters(std::map<GaugeConfigSection *, float *> *para
   //This pass distributes parameters
   size_t numNodes = nodes->size();
 	size_t unused = 0;
+
+	if (paramGrids->at(PARAM_KINEMATIC_ALPHA) && g_DEM->IsSpatialMatch(paramGrids->at(PARAM_KINEMATIC_ALPHA))) {
+      printf("Alpha grid is match!\n");
+    }
+
+  if (paramGrids->at(PARAM_KINEMATIC_BETA) && g_DEM->IsSpatialMatch(paramGrids->at(PARAM_KINEMATIC_BETA))) {
+      printf("Beta grid is match!\n");
+    }
+
 	for (size_t i = 0; i < numNodes; i++) {
 		GridNode *node = &nodes->at(i);
 		KWGridNode *cNode = &(kwNodes[i]);
@@ -402,8 +411,8 @@ void KWRoute::InitializeParameters(std::map<GaugeConfigSection *, float *> *para
 		}
 		cNode->incomingWater[KW_LAYER_INTERFLOW] = 0.0;
     cNode->incomingWater[KW_LAYER_FASTFLOW] = 0.0;
-    
-		// Deal with the distributed parameters here
+		
+    // Deal with the distributed parameters here
 		GridLoc pt;
 		for (size_t paramI = 0; paramI < PARAM_KINEMATIC_QTY; paramI++) {
 			FloatGrid *grid = paramGrids->at(paramI);
@@ -430,7 +439,7 @@ void KWRoute::InitializeParameters(std::map<GaugeConfigSection *, float *> *para
     }
     
     if (cNode->params[PARAM_KINEMATIC_ALPHA] < 0.0) {
-      //printf("Node Alpha(%f) is less than 0, setting to 1.\n", cNode->params[PARAM_KINEMATIC_ALPHA]);
+      printf("Node Alpha(%f) is less than 0, setting to 1.\n", cNode->params[PARAM_KINEMATIC_ALPHA]);
       cNode->params[PARAM_KINEMATIC_ALPHA] = 1.0;
     }
 
@@ -446,7 +455,7 @@ void KWRoute::InitializeParameters(std::map<GaugeConfigSection *, float *> *para
 
     
     
-    if (node->fac > cNode->params[PARAM_KINEMATIC_TH]) {
+    if (node->contribArea > cNode->params[PARAM_KINEMATIC_TH]) {
 			node->channelGridCell = true;
       cNode->channelGridCell = true;
     } else {

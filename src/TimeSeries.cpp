@@ -26,7 +26,7 @@ void TimeSeries::LoadTimeSeries(char *file) {
 	while (!feof(tsFile)) {
 		char buffer[CONFIG_MAX_LEN];
 		float dataValue;
-		if (fscanf(tsFile, "%[^,],%f%*c", &(buffer[0]), &dataValue) == 2) {
+		if (fscanf(tsFile, "%[^,],%f ", &(buffer[0]), &dataValue) == 2) {
 			TSDataPoint *pt = new TSDataPoint;
 			pt->time.LoadTimeExcel(buffer);
 			pt->value = dataValue;

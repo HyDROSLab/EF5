@@ -844,6 +844,8 @@ void CarveBasin(BasinConfigSection *basin, std::vector<GridNode> *nodes, std::ma
 		}
 		currentN->area = g_Projection->GetArea(currentN->refLoc.x, currentN->refLoc.y);
 		currentN->contribArea = currentN->area;
+    currentN->relief = g_DEM->data[currentN->y][currentN->x];
+		currentN->riverLen = currentN->horLen;
 		currentN->fac = g_FAM->data[currentN->y][currentN->x];
 		walkNodes.push(currentN);
 		
@@ -934,6 +936,8 @@ void CarveBasin(BasinConfigSection *basin, std::vector<GridNode> *nodes, std::ma
 					nextN->slope = ((DEMDiff < 1.0) ? 1.0 : DEMDiff) / nextN->horLen;
 					nextN->area = g_Projection->GetArea(nextN->refLoc.x, nextN->refLoc.y);
 					nextN->contribArea = nextN->area;
+					nextN->relief = g_DEM->data[nextN->y][nextN->x];
+					nextN->riverLen = nextN->horLen;
 					//printf("Pushing node %i %i (%i, %i) from %i %i (%i, %i) %i %i\n", nextN->x, nextN->y, g_DDM->data[nextN->y][nextN->x], g_FAM->data[nextN->y][nextN->x], currentN->x, currentN->y, g_DDM->data[currentN->y][currentN->x], g_FAM->data[currentN->y][currentN->x], currentNode, nodes->size());
 					walkNodes.push(nextN);
 				}
@@ -951,6 +955,10 @@ void CarveBasin(BasinConfigSection *basin, std::vector<GridNode> *nodes, std::ma
 		GridNode *node = &nodes->at(i);
 		if (node->downStreamNode != INVALID_DOWNSTREAM_NODE) {	
 			nodes->at(node->downStreamNode).contribArea += node->contribArea;
+			nodes->at(node->downStreamNode).riverLen += node->riverLen;
+      if (nodes->at(node->downStreamNode).relief < node->relief) {
+				nodes->at(node->downStreamNode).relief = node->relief;
+			}
 		}
 	}
 

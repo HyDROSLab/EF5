@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
+#include <dirent.h>
 #if _OPENMP
 #include <omp.h>
 #endif
@@ -599,6 +600,121 @@ void Simulator::CleanUp() {
 }
 
 void Simulator::BasinAvg() {
+	char buffer[CONFIG_MAX_LEN*2];
+  std::vector<float> avgVals, areaVals, fileVals;
+  long numNodes = nodes.size();
+  avgVals.resize(numNodes);
+	areaVals.resize(numNodes);
+	fileVals.resize(numNodes);
+  gridWriter.Initialize();
+
+	DIR *dir;
+	struct dirent *ent;
+
+	INFO_LOGF("Running basin averaging over files in output folder %s", outputPath);
+
+
+	// Compute & Output these first so they get included in the averaging process
+  for (long i = numNodes - 1; i >= 0; i--) {
+      avgVals[i] = nodes[i].relief - g_DEM->data[nodes[i].y][nodes[i].x];
+  }
+  sprintf(buffer, "%s/relief.tif", outputPath);
+  gridWriter.WriteGrid(&nodes, &avgVals, buffer, false);
+
+  for (long i = numNodes - 1; i >= 0; i--) {
+      avgVals[i] = avgVals[i] / nodes[i].riverLen ;
+  }
+  sprintf(buffer, "%s/relief.ratio.tif", outputPath);
+  gridWriter.WriteGrid(&nodes, &avgVals, buffer, false);
+
+
+	if ((dir = opendir(outputPath)) == NULL) {
+		ERROR_LOGF("%s", "Failed to open output directory for reading files to average!");
+		return;
+	}
+
+	while ((ent = readdir(dir)) != NULL) {
+		if (ent->d_name[0] == '.') {
+			continue;
+		}
+		sprintf(buffer, "%s/%s", outputPath, ent->d_name);
+		INFO_LOGF("Averaging file %s", buffer);
+		FloatGrid *fileGrid = ReadFloatTifGrid(buffer);
+		if (!fileGrid) {
+			continue;
+		}
+
+		if (g_DEM->IsSpatialMatch(fileGrid)) {
+    // The grids are the same! Our life is easy!
+    #pragma omp parallel for
+    for (size_t i = 0; i < nodes.size(); i++) {
+      GridNode *node = &(nodes[i]);
+      if (fileGrid->data[node->y][node->x] != fileGrid->noData) {
+        fileVals[i] = fileGrid->data[node->y][node->x];
+      } else {
+        fileVals[i] = 0;
+      }
+    }
+
+  } else {
+    // The grids are different, we must do some resampling fun.
+    #pragma omp parallel for
+    for (size_t i = 0; i < nodes.size(); i++) {
+      GridLoc pt;
+                        GridNode *node = &(nodes[i]);
+      if (fileGrid->GetGridLoc(node->refLoc.x, node->refLoc.y, &pt) && fileGrid->data[pt.y][pt.x] != fileGrid->noData) {
+        fileVals[i] = fileGrid->data[pt.y][pt.x];
+      } else {
+        fileVals[i] = 0;
+      }
+                }
+
+  }
+
+  delete fileGrid;
+	
+	
+		for (long i = numNodes - 1; i >= 0; i--) {
+      GridNode *node = &(nodes[i]);
+      float addVal = avgVals[i] + (fileVals[i] * nodes[i].area);
+      float areaAdd = areaVals[i] + nodes[i].area;
+      avgVals[i] = addVal;
+			areaVals[i] = areaAdd;
+      if (node->downStreamNode != INVALID_DOWNSTREAM_NODE) {
+        avgVals[node->downStreamNode] += addVal;
+				areaVals[node->downStreamNode] += areaAdd;
+      }
+    }	
+	
+		for (long i = numNodes - 1; i >= 0; i--) {
+      avgVals[i] = avgVals[i] / areaVals[i];
+			areaVals[i] = 0.0;
+    }
+	
+		sprintf(buffer, "%s/%s.avg.tif", outputPath, ent->d_name);
+    gridWriter.WriteGrid(&nodes, &avgVals, buffer, false);	
+		for (long i = numNodes - 1; i >= 0; i--) {
+			avgVals[i] = 0.0;
+		}
+	}
+
+	closedir(dir);
+
+	for (long i = numNodes - 1; i >= 0; i--) {
+      avgVals[i] = nodes[i].contribArea;
+	}
+  sprintf(buffer, "%s/basin.area.tif", outputPath);
+  gridWriter.WriteGrid(&nodes, &avgVals, buffer, false);
+
+	for (long i = numNodes - 1; i >= 0; i--) {
+      avgVals[i] = nodes[i].riverLen;
+  }
+  sprintf(buffer, "%s/river.length.tif", outputPath);
+  gridWriter.WriteGrid(&nodes, &avgVals, buffer, false);
+
+}
+
+void Simulator::BasinAvgPrecip() {
   PrecipReader precipReader;
   char buffer[CONFIG_MAX_LEN*2];
 #if _OPENMP
@@ -1708,7 +1824,7 @@ void Simulator::PreloadForcings(char *file, bool cali) {
       // therefore only care about averages!
       //
       readVec.resize(nodes.size());
-      std::vector<float> *vec, *vecPrev;
+      std::vector<float> *vec, *vecPrev = NULL;
       
       sprintf(buffer, "%s/%s", precipSec->GetLoc(), precipFile->GetName());
       vec = &(currentPrecipCali[tsIndex]);

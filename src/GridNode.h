@@ -17,6 +17,8 @@ struct GridNode {
   float area;
 	float contribArea;
   float horLen;
+	float riverLen;
+	float relief;
   bool channelGridCell;
   GaugeConfigSection *gauge;
   unsigned long downStreamNode;
