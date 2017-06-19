@@ -173,7 +173,9 @@ bool TimeVar::LoadTimeExcel(char *time) {
   
   //This cleans up currentTime
   currentTimeSec = port_timegm(&currentTime); // For portability use mktime (while setting TZ environmental variable) instead of timegm
-  
+ 
+  INFO_LOGF("Input \"%s\", year %i, month %i, day %i, hour %i, minutes %i, epoch %li", time, currentTime.tm_year + 1900, currentTime.tm_mon + 1, currentTime.tm_mday, currentTime.tm_min, currentTime.tm_sec, currentTimeSec); 
+ 
   return true;
 }
 
