@@ -40,9 +40,9 @@ jobs:
           tags: true
           
 before_install: |-
+  sudo pip install awscli
   mkdir -p ~/shared
-  ls -al /home/travis/shared
-  ls -al ~/shared
+  aws s3 sync s3://ef5-github-builds/shared ~/shared
   if [ "$CROSS" == "mingw64" ]
   then
     export CC=x86_64-w64-mingw32-gcc
@@ -78,15 +78,14 @@ script: |-
   then
     autoreconf --force --install && ./configure --host=x86_64-w64-mingw32 && make
     cd bin && mv ef5.exe ef5_64.exe && zip ef5_win64.zip ef5_64.exe && mv ef5_win64.zip ~/shared/.
-    ls -al /home/travis/
-    ls -al ~/shared
+    aws s3 sync ~/shared s3://ef5-github-builds/shared
   elif [ "$CROSS" == "osx" ]
   then
     xcodebuild -project EF5/EF5.xcodeproj -alltargets -configuration Release
     cd EF5/build/Release && mv EF5 ef5 && tar -cf ef5_osx.tar ef5 && gzip ef5_osx.tar && mv ef5_osx.tar.gz ~/shared/.
+    aws s3 sync ~/shared s3://ef5-github-builds/shared
   else
     autoreconf --force --install && ./configure && make
     cd bin && tar -cf ef5_linux.tar ef5 && gzip ef5_linux.tar && mv ef5_linux.tar.gz ~/shared/.
-    ls -al /home/travis/
-    ls -al ~/shared
+    aws s3 sync ~/shared s3://ef5-github-builds/shared
   fi
