@@ -24,6 +24,9 @@ jobs:
           - binutils-mingw-w64-x86-64
           - mingw-w64-x86-64-dev
           - zlib1g-dev
+    - stage: build
+      osx_image: xcode8.3
+      env: CROSS=osx
     - stage: deploy
       script: echo "Deploying to GitHub"
       deploy:
