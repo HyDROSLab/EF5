@@ -41,6 +41,8 @@ jobs:
           
 before_install: |-
   mkdir -p ~/shared
+  ls -al /home/travis/shared
+  ls -al ~/shared
   if [ "$CROSS" == "mingw64" ]
   then
     export CC=x86_64-w64-mingw32-gcc
