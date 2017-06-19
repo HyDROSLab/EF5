@@ -33,8 +33,13 @@ jobs:
           secure: bF9rQo5rxQlKWhg9HgoqJNRYoGJnCiaaZNCcAoR8ZojgBTbk3vCnqRmiEHYAs7yF7SrVEfljec12SN7DQla7Y1WGTh9YrrTW6qzmrRNde18h7TZ6QgBMjz7z5hN0zYFxlaEvavLwi4uoinQWgf8tvMiRVO/SBwF9T7qVrb9/KLwn2LD0ngtJSI/kAPVVGEH3nh2YqmsMKaSjakoPSCm+WyDlscLgBEdXymh3SwWlaV/Mfk+ys59n7RZeV1qpZqB2ibQiI1WDikB460YxVTdz/PigAK0j4DVjPU7MO6jir2ttb2kkJGkMnt5zdcs6XioJCzpTWx6eYE6oE8HI0pgIiAPpBZleU/w76umgQaIsu6esHojhWk096WyNWJWYwO9abMAdM0T84Mf2cP5lUxKic141RTfrffrT40UHjw3Q8+hqXssiXwXMSmGaN9pWdFZ3+L/KgJxMroGM4FHvCROkBBkyj1GmRACWWli/WYxmzXK0pvFLoQvAxJlFkSkzYFqOANeBAui+ejj7y7uEsj9X/q326MOrHucGqK5408RVcOqdNVNP5yt4nyFSuZNhltoFsvJ3S0+EJbBkQ413FYzXzpDk1n2OrQBiAK0sBXGYmfTxqD2lSONIbDGP1s24z2XCVAICF882ji2kIY0jMhOrVlyQNJzIQeD2ixuIplbamk0=
         file:
           - ~/shared/ef5_win64.zip
+          - ~/shared/ef5_osx.tar.gz
+          - ~/shared/ef5_linux.tar.gz
         on:
           repo: HyDROSLab/EF5
+          branch: master
+          tags: true
+          
 before_install: |-
   mkdir -p ~/shared
   if [ "$CROSS" == "mingw64" ]
@@ -72,6 +77,10 @@ script: |-
   then
     autoreconf --force --install && ./configure --host=x86_64-w64-mingw32 && make
     cd bin && mv ef5.exe ef5_64.exe && zip ef5_win64.zip ef5_64.exe && mv ef5_win64.zip ~/shared/.
+  elif [ "$CROSS" == "osx" ]
+  then
+    autoreconf --force --install && ./configure && make
+    cd bin && tar -cf ef5_osx.tar ef5 && gzip ef5_osx.tar && mv ef5_osx.tar.gz ~/shared/.
   else
     autoreconf --force --install && ./configure && make
     cd bin && tar -cf ef5_linux.tar ef5 && gzip ef5_linux.tar && mv ef5_linux.tar.gz ~/shared/.
