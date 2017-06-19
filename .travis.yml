@@ -25,6 +25,7 @@ jobs:
           - mingw-w64-x86-64-dev
           - zlib1g-dev
     - stage: build
+      os: osx
       osx_image: xcode8.3
       env: CROSS=osx
     - stage: deploy
