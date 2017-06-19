@@ -3,29 +3,27 @@ dist: trusty
 language: cpp
 git:
   depth: 1
-matrix:
-  include:
-  - os: linux
-    compiler: x86_64-w64-mingw32-gcc
-    env: CROSS=mingw64
-    addons:
-      apt:
-        packages:
-        - gcc-mingw-w64-x86-64
-        - g++-mingw-w64-x86-64
-        - binutils-mingw-w64-x86-64
-        - mingw-w64-x86-64-dev
-        - zlib1g-dev
-  - os: linux
-    compiler: gcc
-    addons:
-      apt:
-        packages:
-        - libgeotiff-dev
 jobs:
   include:
-    - script: "Running build 1"
-    - script: "Running build 2"
+    - stage: build
+      os: linux
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+          - libgeotiff-dev
+    - stage: build
+      os: linux
+      compiler: x86_64-w64-mingw32-gcc
+      env: CROSS=mingw64
+      addons:
+        apt:
+          packages:
+          - gcc-mingw-w64-x86-64
+          - g++-mingw-w64-x86-64
+          - binutils-mingw-w64-x86-64
+          - mingw-w64-x86-64-dev
+          - zlib1g-dev
     - stage: deploy
       script: echo "Deploying to GitHub"
       deploy:
