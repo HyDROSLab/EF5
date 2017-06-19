@@ -82,8 +82,8 @@ script: |-
     cd bin && mv ef5.exe ef5_64.exe && zip ef5_win64.zip ef5_64.exe && mv ef5_win64.zip ~/shared/.
   elif [ "$CROSS" == "osx" ]
   then
-    autoreconf --force --install && ./configure && make
-    cd bin && tar -cf ef5_osx.tar ef5 && gzip ef5_osx.tar && mv ef5_osx.tar.gz ~/shared/.
+    xcodebuild -project EF5/EF5.xcodeproj -alltargets -configuration Release
+    cd EF5/build/Release && mv EF5 ef5 && tar -cf ef5_osx.tar ef5 && gzip ef5_osx.tar && mv ef5_osx.tar.gz ~/shared/.
   else
     autoreconf --force --install && ./configure && make
     cd bin && tar -cf ef5_linux.tar ef5 && gzip ef5_linux.tar && mv ef5_linux.tar.gz ~/shared/.
