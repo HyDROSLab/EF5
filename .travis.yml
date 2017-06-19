@@ -1,6 +1,8 @@
+sudo: false
+dist: trusty
 language: cpp
 git:
-  depth: 3
+  depth: 1
 matrix:
   include:
   - os: linux
@@ -22,7 +24,10 @@ matrix:
         - libgeotiff-dev
 jobs:
   include:
+    - script: "Running build 1"
+    - script: "Running build 2"
     - stage: deploy
+      script: echo "Deploying to GitHub"
       deploy:
         skip_cleanup: true
         provider: releases
