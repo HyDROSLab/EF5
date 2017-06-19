@@ -25,7 +25,7 @@ jobs:
           - mingw-w64-x86-64-dev
           - zlib1g-dev
     - stage: deploy
-      script: echo "Deploying to GitHub"
+      script: echo "Deploying to GitHub" && ls -al ~/shared
       deploy:
         skip_cleanup: true
         provider: releases
