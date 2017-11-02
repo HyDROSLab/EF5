@@ -8,6 +8,7 @@
 #include "TempType.h"
 #include "TimeUnit.h"
 #include <map>
+#include <string>
 
 class TempConfigSection : public ConfigSection {
 

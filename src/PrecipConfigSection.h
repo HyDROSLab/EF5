@@ -8,6 +8,7 @@
 #include "PrecipType.h"
 #include "TimeUnit.h"
 #include <map>
+#include <string>
 
 class PrecipConfigSection : public ConfigSection {
 

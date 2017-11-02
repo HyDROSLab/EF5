@@ -105,13 +105,13 @@ private:
   char *outputPath;
   char *statePath;
   TimeVar stateTime;
-  std::vector<std::vector<float>> peakVals;
+  std::vector<std::vector<float> > peakVals;
   GridWriterFull gridWriter;
   float numYears;
   int missingQPE, missingQPF;
 
   // This is for calibrations only
-  std::vector<std::vector<float>> currentPrecipCali, currentPETCali,
+  std::vector<std::vector<float> > currentPrecipCali, currentPETCali,
       currentTempCali;
   std::vector<float> obsQ, simQ;
   CaliParamConfigSection *caliParamSec;
@@ -130,7 +130,7 @@ private:
   std::vector<SnowModel *> caliSModels;
   std::vector<float *> caliWBCurrentParams, caliRCurrentParams,
       caliSCurrentParams;
-  std::vector<std::map<GaugeConfigSection *, float *>> caliWBFullParamSettings,
+  std::vector<std::map<GaugeConfigSection *, float *> > caliWBFullParamSettings,
       caliRFullParamSettings, caliSFullParamSettings;
 };
 

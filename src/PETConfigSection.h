@@ -8,6 +8,7 @@
 #include "PETType.h"
 #include "TimeUnit.h"
 #include <map>
+#include <string>
 
 class PETConfigSection : public ConfigSection {
 
