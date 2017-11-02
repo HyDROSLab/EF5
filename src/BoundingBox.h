@@ -3,12 +3,11 @@
 
 class BoundingBox {
 
-	public:
-		double top;
-		double bottom;
-		double left;
-		double right;
-		
+public:
+  double top;
+  double bottom;
+  double left;
+  double right;
 };
 
 #endif

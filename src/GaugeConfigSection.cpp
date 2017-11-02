@@ -1,9 +1,9 @@
-#include <cstdlib>
+#include "GaugeConfigSection.h"
+#include "Messages.h"
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <limits>
-#include "Messages.h"
-#include "GaugeConfigSection.h"
 
 std::map<std::string, GaugeConfigSection *> g_gaugeConfigs;
 
@@ -22,13 +22,9 @@ GaugeConfigSection::GaugeConfigSection(char *nameVal) {
   continueUpstream = true;
 }
 
-GaugeConfigSection::~GaugeConfigSection() {
-  
-}
+GaugeConfigSection::~GaugeConfigSection() {}
 
-char *GaugeConfigSection::GetName() {
-  return name;
-}
+char *GaugeConfigSection::GetName() { return name; }
 
 void GaugeConfigSection::LoadTS() {
   if (observation[0]) {
@@ -55,7 +51,7 @@ void GaugeConfigSection::SetObservedValue(char *timeBuffer, float dataValue) {
 }
 
 CONFIG_SEC_RET GaugeConfigSection::ProcessKeyValue(char *name, char *value) {
-  
+
   if (!strcasecmp(name, "lat")) {
     lat = strtod(value, NULL);
     latSet = true;
@@ -81,7 +77,7 @@ CONFIG_SEC_RET GaugeConfigSection::ProcessKeyValue(char *name, char *value) {
       outputTS = true;
     } else {
       ERROR_LOGF("Unknown OUTPUTTS option \"%s\"", value);
-      INFO_LOGF("Valid OUTPUTTS options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid OUTPUTTS options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
     outputTSSet = true;
@@ -92,7 +88,7 @@ CONFIG_SEC_RET GaugeConfigSection::ProcessKeyValue(char *name, char *value) {
       wantDA = true;
     } else {
       ERROR_LOGF("Unknown WANTDA option \"%s\"", value);
-      INFO_LOGF("Valid WANTDA options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid WANTDA options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
   } else if (!strcasecmp(name, "wantco")) {
@@ -102,7 +98,7 @@ CONFIG_SEC_RET GaugeConfigSection::ProcessKeyValue(char *name, char *value) {
       wantCO = true;
     } else {
       ERROR_LOGF("Unknown WANTCO option \"%s\"", value);
-      INFO_LOGF("Valid WANTCO options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid WANTCO options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
   } else if (!strcasecmp(name, "continueupstream")) {
@@ -112,11 +108,12 @@ CONFIG_SEC_RET GaugeConfigSection::ProcessKeyValue(char *name, char *value) {
       continueUpstream = true;
     } else {
       ERROR_LOGF("Unknown CONTINUEUPSTREAM option \"%s\"", value);
-      INFO_LOGF("Valid CONTINUEUPSTREAM options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid CONTINUEUPSTREAM options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
-  }  else {
-    ERROR_LOGF("Unknown key value \"%s=%s\" in gauge %s!", name, value, this->name);
+  } else {
+    ERROR_LOGF("Unknown key value \"%s=%s\" in gauge %s!", name, value,
+               this->name);
     return INVALID_RESULT;
   }
   return VALID_RESULT;
@@ -130,12 +127,13 @@ CONFIG_SEC_RET GaugeConfigSection::ValidateSection() {
     ERROR_LOG("The longitude was not specified");
     return INVALID_RESULT;
   }
-  
+
   return VALID_RESULT;
 }
 
 bool GaugeConfigSection::IsDuplicate(char *name) {
-  std::map<std::string, GaugeConfigSection *>::iterator itr = g_gaugeConfigs.find(name);
+  std::map<std::string, GaugeConfigSection *>::iterator itr =
+      g_gaugeConfigs.find(name);
   if (itr == g_gaugeConfigs.end()) {
     return false;
   } else {

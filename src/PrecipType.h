@@ -14,13 +14,12 @@ enum SUPPORTED_PRECIP_TYPES {
 extern const char *precipTypeStrings[];
 
 class PrecipType {
-  
+
 public:
   SUPPORTED_PRECIP_TYPES GetType();
   SUPPORTED_PRECIP_TYPES ParseType(char *typeStr);
   const char *GetTypes();
-  
-  
+
 private:
   SUPPORTED_PRECIP_TYPES type;
 };
