@@ -1,7 +1,7 @@
+#include "BasicConfigSection.h"
+#include "Messages.h"
 #include <cstdio>
 #include <cstring>
-#include "Messages.h"
-#include "BasicConfigSection.h"
 
 BasicConfigSection *g_basicConfig;
 
@@ -12,40 +12,26 @@ BasicConfigSection::BasicConfigSection() {
   projectionSet = false;
   esriDDMSet = false;
   selfFAMSet = false;
-	artist[0] = 0;
-	copyright[0] = 0;
+  artist[0] = 0;
+  copyright[0] = 0;
 }
 
-BasicConfigSection::~BasicConfigSection() {
-  
-}
+BasicConfigSection::~BasicConfigSection() {}
 
-char *BasicConfigSection::GetDEM() {
-  return DEM;
-}
+char *BasicConfigSection::GetDEM() { return DEM; }
 
-char *BasicConfigSection::GetDDM() {
-  return DDM;
-}
+char *BasicConfigSection::GetDDM() { return DDM; }
 
-char *BasicConfigSection::GetFAM() {
-  return FAM;
-}
+char *BasicConfigSection::GetFAM() { return FAM; }
 
-char *BasicConfigSection::GetArtist() {
-  return artist;
-}
+char *BasicConfigSection::GetArtist() { return artist; }
 
-char *BasicConfigSection::GetCopyright() {
-  return copyright;
-}
+char *BasicConfigSection::GetCopyright() { return copyright; }
 
-PROJECTIONS BasicConfigSection::GetProjection() {
-  return projection;
-}
+PROJECTIONS BasicConfigSection::GetProjection() { return projection; }
 
 CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
-  
+
   if (!strcasecmp(name, "dem")) {
     strcpy(DEM, value);
     DEMSet = true;
@@ -55,16 +41,16 @@ CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
   } else if (!strcasecmp(name, "fam")) {
     strcpy(FAM, value);
     FAMSet = true;
-	} else if (!strcasecmp(name, "author")) {
-		strcpy(artist, value);
-		for (unsigned int i = 0; i < strlen(artist); i++) {
-			if (artist[i] == '_') {
-				artist[i] = ' ';
-			}
-		}
-	} else if (!strcasecmp(name, "copyright")) {
-		strcpy(copyright, value);
-		for (unsigned int i = 0; i < strlen(copyright); i++) {
+  } else if (!strcasecmp(name, "author")) {
+    strcpy(artist, value);
+    for (unsigned int i = 0; i < strlen(artist); i++) {
+      if (artist[i] == '_') {
+        artist[i] = ' ';
+      }
+    }
+  } else if (!strcasecmp(name, "copyright")) {
+    strcpy(copyright, value);
+    for (unsigned int i = 0; i < strlen(copyright); i++) {
       if (copyright[i] == '_') {
         copyright[i] = ' ';
       }
@@ -78,7 +64,7 @@ CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
       projectionSet = true;
     } else {
       ERROR_LOGF("Unknown projection option \"%s\"", value);
-      INFO_LOGF("Valid projection options are \"%s\"",  "GEOGRAPHIC, LAEA");
+      INFO_LOGF("Valid projection options are \"%s\"", "GEOGRAPHIC, LAEA");
       return INVALID_RESULT;
     }
   } else if (!strcasecmp(name, "esriddm")) {
@@ -90,7 +76,7 @@ CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
       esriDDMSet = true;
     } else {
       ERROR_LOGF("Unknown ESRI DDM option \"%s\"", value);
-      INFO_LOGF("Valid ESRI DDM options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid ESRI DDM options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
   } else if (!strcasecmp(name, "selffam")) {
@@ -102,7 +88,7 @@ CONFIG_SEC_RET BasicConfigSection::ProcessKeyValue(char *name, char *value) {
       selfFAMSet = true;
     } else {
       ERROR_LOGF("Unknown Self FAM option \"%s\"", value);
-      INFO_LOGF("Valid Self FAM options are \"%s\"",  "TRUE, FALSE");
+      INFO_LOGF("Valid Self FAM options are \"%s\"", "TRUE, FALSE");
       return INVALID_RESULT;
     }
   } else {
@@ -129,7 +115,8 @@ CONFIG_SEC_RET BasicConfigSection::ValidateSection() {
     ERROR_LOG("The type of DDM (ESRIDDM) was not specified");
     return INVALID_RESULT;
   } else if (!selfFAMSet) {
-    ERROR_LOG("If the FAM includes the current grid cell in the accumulation (SELFFAM) was not specified");
+    ERROR_LOG("If the FAM includes the current grid cell in the accumulation "
+              "(SELFFAM) was not specified");
     return INVALID_RESULT;
   }
   return VALID_RESULT;

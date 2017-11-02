@@ -1,8 +1,8 @@
 #ifndef GRID_NODE_H
 #define GRID_NODE_H
 
-#include <vector>
 #include "GaugeConfigSection.h"
+#include <vector>
 
 #define INVALID_DOWNSTREAM_NODE -1ul
 
@@ -15,7 +15,7 @@ struct GridNode {
   float slope;
   long fac;
   float area;
-	float contribArea;
+  float contribArea;
   float horLen;
   bool channelGridCell;
   GaugeConfigSection *gauge;

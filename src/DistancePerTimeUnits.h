@@ -6,15 +6,14 @@
 
 class DistancePerTimeUnits {
 
-	public:
-		bool ParseUnit(char *units);
-		TimeUnit *GetTime() { return &time; }
-		DistanceUnit *GetDist() { return &dist; }
+public:
+  bool ParseUnit(char *units);
+  TimeUnit *GetTime() { return &time; }
+  DistanceUnit *GetDist() { return &dist; }
 
-	private:
-		DistanceUnit dist;
-		TimeUnit time;
-
+private:
+  DistanceUnit dist;
+  TimeUnit time;
 };
 
 #endif

@@ -1,18 +1,18 @@
 #ifndef SIMULATOR_H
 #define SIMULATOR_H
 
+#include "GaugeConfigSection.h"
 #include "GaugeMap.h"
 #include "GridNode.h"
-#include "GaugeConfigSection.h"
 #include "Model.h"
 #include "ModelBase.h"
 #include "PETConfigSection.h"
-#include "PrecipConfigSection.h"
-#include "TempConfigSection.h"
-#include "TaskConfigSection.h"
-#include "RPSkewness.h"
-#include "PrecipReader.h"
 #include "PETReader.h"
+#include "PrecipConfigSection.h"
+#include "PrecipReader.h"
+#include "RPSkewness.h"
+#include "TaskConfigSection.h"
+#include "TempConfigSection.h"
 #include "TempReader.h"
 
 class Simulator {
@@ -21,38 +21,43 @@ public:
   void PreloadForcings(char *file, bool cali);
   bool LoadSavedForcings(char *file, bool cali);
   void SaveForcings(char *file);
-  
+
   void CleanUp();
-	void BasinAvg();
+  void BasinAvg();
   void Simulate(bool trackPeaks = false);
   float SimulateForCali(float *testParams);
   float *SimulateForCaliTS(float *testParams);
   float *GetObsTS();
   size_t GetNumSteps() { return totalTimeStepsOutsideWarm; }
-  
+
 private:
   bool InitializeBasic(TaskConfigSection *task);
   bool InitializeSimu(TaskConfigSection *task);
   bool InitializeCali(TaskConfigSection *task);
   bool InitializeGridParams(TaskConfigSection *task);
-  
+
   void SimulateDistributed(bool trackPeaks);
   void SimulateLumped();
-  
+
   float GetNumSimulatedYears();
-  int LoadForcings(PrecipReader *precipReader, PETReader *petReader, TempReader *tempReader);
+  int LoadForcings(PrecipReader *precipReader, PETReader *petReader,
+                   TempReader *tempReader);
   void SaveLP3Params();
   void SaveTSOutput();
- 	bool IsOutputTS();
-	void LoadDAFile(TaskConfigSection *task);
-	void AssimilateData();
-	void OutputCombinedOutput();
+  bool IsOutputTS();
+  void LoadDAFile(TaskConfigSection *task);
+  void AssimilateData();
+  void OutputCombinedOutput();
 
-	bool ReadThresFile(char *file, std::vector<GridNode> *nodes, std::vector<float> *thresVals);
-	float ComputeThresValue(float discharge, float action, float minor, float moderate, float major);
-	float ComputeThresValueP(float discharge, float action, float actionSD, float minor, float minorSD, float moderate, float moderateSD, float major, float majorSD);
-	float CalcProb(float discharge, float mean, float sd);
- 
+  bool ReadThresFile(char *file, std::vector<GridNode> *nodes,
+                     std::vector<float> *thresVals);
+  float ComputeThresValue(float discharge, float action, float minor,
+                          float moderate, float major);
+  float ComputeThresValueP(float discharge, float action, float actionSD,
+                           float minor, float minorSD, float moderate,
+                           float moderateSD, float major, float majorSD);
+  float CalcProb(float discharge, float mean, float sd);
+
   // These guys are the basic variables
   TaskConfigSection *task;
   GridNodeVec nodes;
@@ -60,26 +65,35 @@ private:
   WaterBalanceModel *wbModel;
   RoutingModel *rModel;
   SnowModel *sModel;
-	InundationModel *iModel;
+  InundationModel *iModel;
   GaugeMap gaugeMap;
   PrecipConfigSection *precipSec, *qpfSec;
   PETConfigSection *petSec;
   TempConfigSection *tempSec, *tempFSec;
   std::vector<GaugeConfigSection *> *gauges;
   std::map<GaugeConfigSection *, float *> fullParamSettings, *paramSettings;
-  std::map<GaugeConfigSection *, float *> fullParamSettingsRoute, *paramSettingsRoute;
-  std::map<GaugeConfigSection *, float *> fullParamSettingsSnow, *paramSettingsSnow;
-	std::map<GaugeConfigSection *, float *> fullParamSettingsInundation, *paramSettingsInundation;
-  TimeUnit *timeStep, *timeStepSR, *timeStepLR, *timeStepPrecip, *timeStepQPF, *timeStepPET, *timeStepTemp, *timeStepTempF;
+  std::map<GaugeConfigSection *, float *> fullParamSettingsRoute,
+      *paramSettingsRoute;
+  std::map<GaugeConfigSection *, float *> fullParamSettingsSnow,
+      *paramSettingsSnow;
+  std::map<GaugeConfigSection *, float *> fullParamSettingsInundation,
+      *paramSettingsInundation;
+  TimeUnit *timeStep, *timeStepSR, *timeStepLR, *timeStepPrecip, *timeStepQPF,
+      *timeStepPET, *timeStepTemp, *timeStepTempF;
   float precipConvert, qpfConvert, petConvert, timeStepHours, timeStepHoursLR;
-  TimeVar currentTime, currentTimePrecip, currentTimeQPF, currentTimePET, currentTimeTemp, currentTimeTempF, beginTime, endTime, warmEndTime, beginLRTime;
-  DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile, currentTimeText, currentTimeTextOutput;
-  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE, currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth;
-  std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow, paramGridsInundation;
+  TimeVar currentTime, currentTimePrecip, currentTimeQPF, currentTimePET,
+      currentTimeTemp, currentTimeTempF, beginTime, endTime, warmEndTime,
+      beginLRTime;
+  DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile,
+      currentTimeText, currentTimeTextOutput;
+  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE,
+      currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth;
+  std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow,
+      paramGridsInundation;
   bool hasQPF, hasTempF, wantsDA;
-	bool inLR;
-	std::vector<bool> gaugesUsed;
-  
+  bool inLR;
+  std::vector<bool> gaugesUsed;
+
   // This is for simulations only
   std::vector<float> currentPrecipSimu, currentPETSimu, currentTempSimu;
   std::vector<FILE *> gaugeOutputs;
@@ -95,9 +109,10 @@ private:
   GridWriterFull gridWriter;
   float numYears;
   int missingQPE, missingQPF;
-  
+
   // This is for calibrations only
-  std::vector<std::vector<float> > currentPrecipCali, currentPETCali, currentTempCali;
+  std::vector<std::vector<float> > currentPrecipCali, currentPETCali,
+      currentTempCali;
   std::vector<float> obsQ, simQ;
   CaliParamConfigSection *caliParamSec;
   RoutingCaliParamConfigSection *routingCaliParamSec;
@@ -113,8 +128,10 @@ private:
   std::vector<WaterBalanceModel *> caliWBModels;
   std::vector<RoutingModel *> caliRModels;
   std::vector<SnowModel *> caliSModels;
-  std::vector<float *> caliWBCurrentParams, caliRCurrentParams, caliSCurrentParams;
-  std::vector<std::map<GaugeConfigSection *, float *> > caliWBFullParamSettings, caliRFullParamSettings, caliSFullParamSettings;
+  std::vector<float *> caliWBCurrentParams, caliRCurrentParams,
+      caliSCurrentParams;
+  std::vector<std::map<GaugeConfigSection *, float *> > caliWBFullParamSettings,
+      caliRFullParamSettings, caliSFullParamSettings;
 };
 
 #endif

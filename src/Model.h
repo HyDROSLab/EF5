@@ -16,15 +16,15 @@
 #define ADDPARAMVCI(a, b)
 
 enum RUNSTYLE {
-	STYLE_SIMU,
-	STYLE_SIMU_RP,
-	STYLE_CALI_ARS,
-	STYLE_CALI_DREAM,
-	STYLE_CLIP_BASIN,
-	STYLE_CLIP_GAUGE,
-	STYLE_MAKE_BASIC,
-	STYLE_BASIN_AVG,
-	STYLE_QTY,
+  STYLE_SIMU,
+  STYLE_SIMU_RP,
+  STYLE_CALI_ARS,
+  STYLE_CALI_DREAM,
+  STYLE_CLIP_BASIN,
+  STYLE_CLIP_GAUGE,
+  STYLE_MAKE_BASIC,
+  STYLE_BASIN_AVG,
+  STYLE_QTY,
 };
 
 enum MODELS {
@@ -33,8 +33,8 @@ enum MODELS {
 #include "Models.tbl"
 #undef ADDMODEL
 #define ADDMODEL(a, b)
-  
-	MODEL_QTY,
+
+  MODEL_QTY,
 };
 
 enum CREST_PARAMS {
@@ -43,8 +43,8 @@ enum CREST_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMCREST
 #define ADDPARAMCREST(a, b)
-	
-	PARAM_CREST_QTY,
+
+  PARAM_CREST_QTY,
 };
 
 enum HYMOD_PARAMS {
@@ -53,8 +53,8 @@ enum HYMOD_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMHYMOD
 #define ADDPARAMHYMOD(a, b)
-  
-	PARAM_HYMOD_QTY,
+
+  PARAM_HYMOD_QTY,
 };
 
 enum SAC_PARAMS {
@@ -63,7 +63,7 @@ enum SAC_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMSAC
 #define ADDPARAMSAC(a, b)
-  
+
   PARAM_SAC_QTY,
 };
 
@@ -83,8 +83,8 @@ enum ROUTES {
 #include "Models.tbl"
 #undef ADDROUTE
 #define ADDROUTE(a, b)
-  
-	ROUTE_QTY,
+
+  ROUTE_QTY,
 };
 
 enum LINEAR_PARAMS {
@@ -93,7 +93,7 @@ enum LINEAR_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMLINEAR
 #define ADDPARAMLINEAR(a, b)
-  
+
   PARAM_LINEAR_QTY,
 };
 
@@ -103,7 +103,7 @@ enum KINEMATIC_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMKINEMATIC
 #define ADDPARAMKINEMATIC(a, b)
-  
+
   PARAM_KINEMATIC_QTY,
 };
 
@@ -113,7 +113,7 @@ enum SNOWS {
 #include "Models.tbl"
 #undef ADDSNOW
 #define ADDSNOW(a, b)
-  
+
   SNOW_QTY,
 };
 
@@ -123,7 +123,7 @@ enum SNOW17_PARAMS {
 #include "Models.tbl"
 #undef ADDPARAMSNOW17
 #define ADDPARAMSNOW17(a, b)
-  
+
   PARAM_SNOW17_QTY,
 };
 
@@ -186,6 +186,7 @@ extern const char **inundationParamStrings[];
 extern const char **inundationParamGridStrings[];
 extern const int numInundationParams[];
 
-#define IsCalibrationRunStyle(style) ((style) == STYLE_CALI_ARS || (style) == STYLE_CALI_DREAM)
+#define IsCalibrationRunStyle(style)                                           \
+  ((style) == STYLE_CALI_ARS || (style) == STYLE_CALI_DREAM)
 
 #endif
