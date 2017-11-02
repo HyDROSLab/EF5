@@ -19,7 +19,7 @@ public:
 
 private:
   std::vector<GaugeConfigSection *> gauges;
-  std::vector<std::vector<GaugeConfigSection *>> gaugeTree;
+  std::vector<std::vector<GaugeConfigSection *> > gaugeTree;
   std::map<GaugeConfigSection *, size_t> gaugeMap;
   std::vector<float> partialVal, partialArea;
 };
