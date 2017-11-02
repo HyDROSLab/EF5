@@ -1,5 +1,8 @@
 #ifndef DREAM_FUNCTIONS_H
 #define DREAM_FUNCTIONS_H
+
+#include <cstdio>
+
 void dream(struct DREAM_Parameters *pointerMCMC,
            struct Model_Input *pointerInput);
 void CalcCbWb(float *beta, float *pCb, float *pWb);

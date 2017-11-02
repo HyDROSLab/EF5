@@ -1,5 +1,4 @@
 #include "GeographicProjection.h"
-#include "Defines.h"
 #include "Messages.h"
 #include <cmath>
 #include <cstdio>

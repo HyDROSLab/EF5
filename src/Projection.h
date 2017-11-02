@@ -1,6 +1,8 @@
 #ifndef PROJECTION_H
 #define PROJECTION_H
 
+#include "Defines.h"
+
 enum PROJECTIONS {
   PROJECTION_GEOGRAPHIC,
   PROJECTION_LAEA,
