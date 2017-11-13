@@ -64,6 +64,8 @@ private:
   std::vector<KWGridNode> kwNodes;
   float maxSpeed;
   bool initialized;
+  long index1;
+  long index2;
 };
 
 #endif

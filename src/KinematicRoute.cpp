@@ -11,7 +11,10 @@ static const char *stateStrings[] = {
     "IR",
 };
 
-KWRoute::KWRoute() {}
+KWRoute::KWRoute() {
+  index1 = 0;
+  index2 = 0;
+}
 
 KWRoute::~KWRoute() {}
 
@@ -83,8 +86,15 @@ bool KWRoute::InitializeModel(
     for (int p = 0; p < STATE_KW_QTY; p++) {
       cNode->states[p] = 0.0;
     }
+    if (index1 == 0 && node->fac >= 1) {
+      index1 = i;
+    } else if (index2 == 0 && node->fac >= 2) {
+      index2 = i;
+    }
   }
 
+
+  printf("Index1 is %li and index2 is %li\n", index1, index2);
   InitializeParameters(paramSettings, paramGrids);
   initialized = false;
   maxSpeed = 1.0;
@@ -169,7 +179,27 @@ bool KWRoute::Route(float stepHours, std::vector<float> *fastFlow,
 
   size_t numNodes = nodes->size();
 
-  for (long i = numNodes - 1; i >= 0; i--) {
+  /*for (long i = numNodes - 1; i >= 0; i--) {
+    KWGridNode *cNode = &(kwNodes[i]);
+    RouteInt(stepHours * 3600.0f, &(nodes->at(i)), cNode, fastFlow->at(i),
+             slowFlow->at(i));
+  }*/
+
+  #pragma omp parallel for
+  for (long i = 0; i < index1; i++) {
+    KWGridNode *cNode = &(kwNodes[i]);
+    RouteInt(stepHours * 3600.0f, &(nodes->at(i)), cNode, fastFlow->at(i),
+             slowFlow->at(i));
+  }
+
+  #pragma omp parallel for
+  for (long i = index1; i < index2; i++) {
+    KWGridNode *cNode = &(kwNodes[i]);
+    RouteInt(stepHours * 3600.0f, &(nodes->at(i)), cNode, fastFlow->at(i),
+             slowFlow->at(i));
+  }
+
+  for (long i = index2; i < (long)numNodes; i++) {
     KWGridNode *cNode = &(kwNodes[i]);
     RouteInt(stepHours * 3600.0f, &(nodes->at(i)), cNode, fastFlow->at(i),
              slowFlow->at(i));
