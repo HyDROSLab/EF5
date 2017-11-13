@@ -1267,6 +1267,9 @@ void ReclassifyDDM() {
 				case 32:
           g_DDM->data[row][col] = FLOW_NORTHWEST;
           break;
+				default:
+					g_DDM->data[row][col] = g_DDM->noData;
+					break;
 			}
     }
   }

@@ -5,9 +5,9 @@
 #include "LAEAProjection.h"
 
 LAEAProjection::LAEAProjection() {
-	stan_par = TORADIANS(45.0);
-	cent_lon = TORADIANS(-100.0);
-	a = 6370997.0; 
+	stan_par = TORADIANS(48.0);  // TORADIANS(45.0);
+	cent_lon = TORADIANS(9.0); //TORADIANS(-100.0);
+	a = 6378388.0; //6370997.0; 
 }
 
 LAEAProjection::~LAEAProjection() {

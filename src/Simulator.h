@@ -75,7 +75,7 @@ private:
   float precipConvert, qpfConvert, petConvert, timeStepHours, timeStepHoursLR;
   TimeVar currentTime, currentTimePrecip, currentTimeQPF, currentTimePET, currentTimeTemp, currentTimeTempF, beginTime, endTime, warmEndTime, beginLRTime;
   DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile, currentTimeText, currentTimeTextOutput;
-  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE, currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth;
+  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE, currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth, computeVec;
   std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow, paramGridsInundation;
   bool hasQPF, hasTempF, wantsDA;
 	bool inLR;

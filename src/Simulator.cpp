@@ -330,6 +330,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
     currentQ.resize(nodes.size());
     currentSWE.resize(nodes.size());
     currentDepth.resize(nodes.size());
+    computeVec.resize(nodes.size());
   } else {
     outputRP = false;
     currentFF.resize(lumpedNodes.size());
@@ -1318,13 +1319,14 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   }
   
   // Hard coded RP counting
-  std::vector<float> count2, rpGrid, rpMaxGrid, maxGrid;
+  std::vector<float> count2, rpGrid, rpMaxGrid, maxGrid, maxDepthGrid;
   std::vector<float> SM;
   std::vector<float> dailyMaxQ, dailyMinSM, dailyMaxQHour;
   count2.resize(currentFF.size());
   rpGrid.resize(currentFF.size());
   rpMaxGrid.resize(currentFF.size());
   maxGrid.resize(currentFF.size());
+  maxDepthGrid.resize(currentFF.size());
   SM.resize(currentFF.size());
   
   for (size_t i = 0; i < currentFF.size(); i++) {
@@ -1332,6 +1334,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     rpGrid[i] = 0.0;
     rpMaxGrid[i] = 0.0;
     maxGrid[i] = 0.0;
+		maxDepthGrid[i] = 0.0;
     currentFF[i] = 0.0;
     currentSF[i] = 0.0;
     currentQ[i] = 0.0;
@@ -1462,6 +1465,10 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         SaveTSOutput();
       }
       
+			if (iModel) {
+        iModel->Inundation(&currentQ, &currentDepth);
+			}
+
       if (trackPeaks) {
         for (size_t i = 0; i < currentFF.size(); i++) {
           if (currentQ[i] > peakVals[indexYear][i]) {
@@ -1482,6 +1489,11 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
             rpMaxGrid[i] = rpGrid[i];
           }
         }
+				if (iModel) {
+					if (currentDepth[i] > maxDepthGrid[i]) {
+						maxDepthGrid[i] = currentDepth[i];
+					}
+				}
       }
       
       /*int month = currentTime.GetTM()->tm_mon;
@@ -1499,9 +1511,9 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         sprintf(buffer, "%s/q.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
 	for (size_t i = 0; i < currentQ.size(); i++) {
         	float val = floorf(currentQ[i] * 10.0f + 0.5f) / 10.0f;
-        	currentDepth[i] = val;
+        	computeVec[i] = val;
     	}
-        gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+        gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
       }
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
@@ -1528,25 +1540,24 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         gridWriter.WriteGrid(&nodes, &currentTempSimu, buffer, false);
       }
       if (iModel && (griddedOutputs & OG_DEPTH) == OG_DEPTH) {
-        iModel->Inundation(&currentQ, &currentDepth);
         sprintf(buffer, "%s/depth.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), iModel->GetName());
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
       if ((griddedOutputs & OG_UNITQ) == OG_UNITQ) {
         for (size_t i = 0; i < currentQ.size(); i++) {
-          currentDepth[i] = currentQ[i] / nodes[i].contribArea;
-	  float val = floorf(currentDepth[i] * 10.0f + 0.5f) / 10.0f;
-      	  currentDepth[i] = val;
+          computeVec[i] = currentQ[i] / nodes[i].contribArea;
+	  float val = floorf(computeVec[i] * 10.0f + 0.5f) / 10.0f;
+      	  computeVec[i] = val;
         }
         sprintf(buffer, "%s/unitq.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
-        gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+        gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
       }
       if (outputThres && (griddedOutputs & OG_THRES) == OG_THRES) {
         for (size_t i = 0; i < currentQ.size(); i++) {
-          currentDepth[i] = ComputeThresValue(currentQ[i], actionVals[i], minorVals[i], moderateVals[i], majorVals[i]);
+          computeVec[i] = ComputeThresValue(currentQ[i], actionVals[i], minorVals[i], moderateVals[i], majorVals[i]);
         }
         sprintf(buffer, "%s/thres.%s.%s.tif", outputPath, currentTimeTextOutput.GetName(), wbModel->GetName());
-        gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+        gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
         
       }
       
@@ -1614,9 +1625,9 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     sprintf(buffer, "%s/maxq.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
     for (size_t i = 0; i < currentQ.size(); i++) {
     	float val = floorf(maxGrid[i] * 10.0f + 0.5f) / 10.0f;
-	currentDepth[i] = val;
+	computeVec[i] = val;
     }
-    gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+    gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
   }
   
   if (sModel && (griddedOutputs & OG_MAXSWE) == OG_MAXSWE) {
@@ -1626,32 +1637,37 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   
   if ((griddedOutputs & OG_MAXUNITQ) == OG_MAXUNITQ) {
     for (size_t i = 0; i < currentQ.size(); i++) {
-      currentDepth[i] = maxGrid[i] / nodes[i].contribArea;
-      float val = floorf(currentDepth[i] * 10.0f + 0.5f) / 10.0f;
-      currentDepth[i] = val;
+      computeVec[i] = maxGrid[i] / nodes[i].contribArea;
+      float val = floorf(computeVec[i] * 10.0f + 0.5f) / 10.0f;
+      computeVec[i] = val;
     }
     sprintf(buffer, "%s/maxunitq.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
-    gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+    gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
   }
+
+  if ((griddedOutputs & OG_MAXDEPTH) == OG_MAXDEPTH) {
+    sprintf(buffer, "%s/maxdepth.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
+    gridWriter.WriteGrid(&nodes, &maxDepthGrid, buffer, false);
+  }	
   
   if (outputThres && (griddedOutputs & OG_MAXTHRES) == OG_MAXTHRES) {
     for (size_t i = 0; i < currentQ.size(); i++) {
-      currentDepth[i] = floorf(ComputeThresValue(maxGrid[i], actionVals[i], minorVals[i], moderateVals[i], majorVals[i]) * 10.0f + 0.5f) / 10.0f;
-      if (currentDepth[i] < 1.0) {
-	currentDepth[i] = 0.0;
+      computeVec[i] = floorf(ComputeThresValue(maxGrid[i], actionVals[i], minorVals[i], moderateVals[i], majorVals[i]) * 10.0f + 0.5f) / 10.0f;
+      if (computeVec[i] < 1.0) {
+	computeVec[i] = 0.0;
 	}
     }
     sprintf(buffer, "%s/maxthres.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
-    gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+    gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
     
   }
   
   if (outputThresP && (griddedOutputs & OG_MAXTHRESP) == OG_MAXTHRESP) {
     for (size_t i = 0; i < currentQ.size(); i++) {
-      currentDepth[i] = floorf(ComputeThresValueP(maxGrid[i], actionVals[i], actionSDVals[i], minorVals[i], minorSDVals[i], moderateVals[i], moderateSDVals[i], majorVals[i], majorSDVals[i]) * 10.0f + 0.5f) / 10.0f;
+      computeVec[i] = floorf(ComputeThresValueP(maxGrid[i], actionVals[i], actionSDVals[i], minorVals[i], minorSDVals[i], moderateVals[i], moderateSDVals[i], majorVals[i], majorSDVals[i]) * 10.0f + 0.5f) / 10.0f;
     }
     sprintf(buffer, "%s/maxthresp.%04i%02i%02i.%02i%02i%02i.tif", outputPath, ctWE->tm_year + 1900, ctWE->tm_mon + 1, ctWE->tm_mday, ctWE->tm_hour, ctWE->tm_min, ctWE->tm_sec);
-    gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
+    gridWriter.WriteGrid(&nodes, &computeVec, buffer, false);
     
   }
   

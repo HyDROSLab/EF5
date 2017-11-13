@@ -29,34 +29,6 @@ float KWRoute::SetObsInflow(long index, float inflow) {
 		cNode->incomingWaterOverland = inflow / node->horLen;
 	} else {
 		prev = cNode->states[STATE_KW_PQ];
-		float diff = 0.0;
-		if (inflow > 1.0 && prev > 1.0) {
-			diff = inflow/prev - 1.0;
-		}
-		GaugeConfigSection *thisGauge = node->gauge;
-		float multiplier = 1.0;
-		if (diff > 0.2) {
-			multiplier = 0.5;
-		} else if (diff < -0.2) {
-			multiplier = 2.0;
-		}
-		printf(" Multiplier %f,%f,%f,%f ", multiplier, diff, inflow, prev);
-		if (multiplier != 1.0) {
-			size_t numNodes = nodes->size();
-			for (size_t i = 0; i < numNodes; i++) {
-				node = &nodes->at(i);
-				if (node->gauge == thisGauge) {
-    			KWGridNode *cNode = &(kwNodes[i]);
-					cNode->params[PARAM_KINEMATIC_ALPHA] *= multiplier;
-					if (cNode->params[PARAM_KINEMATIC_ALPHA] < 0.01) {
-						cNode->params[PARAM_KINEMATIC_ALPHA] = 0.01;
-					} else if (cNode->params[PARAM_KINEMATIC_ALPHA] > 200.0) {
-						cNode->params[PARAM_KINEMATIC_ALPHA] = 200.0;
-					}
-				}
-			}
-
-		}
 		cNode->states[STATE_KW_PQ] = inflow;
 		cNode->incomingWaterChannel = inflow;
 	}
