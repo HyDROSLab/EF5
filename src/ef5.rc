@@ -1,6 +1,6 @@
 1 VERSIONINFO
-FILEVERSION     1,2,1,0
-PRODUCTVERSION  1,2,1,0
+FILEVERSION     1,2,2,0
+PRODUCTVERSION  1,2,2,0
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
@@ -8,12 +8,12 @@ BEGIN
     BEGIN
       VALUE "CompanyName", "Hydrometeorology and Remote Sensing Laboratory"
       VALUE "FileDescription", "Ensemble Framework For Flash Flood Forecasting"
-      VALUE "FileVersion", "1.2.1"
+      VALUE "FileVersion", "1.2.2"
       VALUE "InternalName", "EF5"
       VALUE "LegalCopyright", "Public Domain"
       VALUE "OriginalFilename", "EF5.exe"
       VALUE "ProductName", "EF5"
-      VALUE "ProductVersion", "1.2.1"
+      VALUE "ProductVersion", "1.2.2"
     END
   END
 
