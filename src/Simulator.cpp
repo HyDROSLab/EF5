@@ -959,10 +959,17 @@ void Simulator::SaveTSOutput() {
   for (size_t i = 0; i < gauges->size(); i++) {
     GaugeConfigSection *gauge = gauges->at(i);
     if (gaugeOutputs[i]) {
-      fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f",
+      if (std::isfinite(currentQ[gauge->GetGridNodeIndex()])) {
+        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f",
               currentTimeText.GetName(), currentQ[gauge->GetGridNodeIndex()],
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
               avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+      } else {
+        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.4f,%.4f",
+              currentTimeText.GetName(),
+              gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
+              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+      }
       if (sModel) {
         fprintf(gaugeOutputs[i], ",%.2f,%.2f", avgT[i], avgSWE[i]);
       }

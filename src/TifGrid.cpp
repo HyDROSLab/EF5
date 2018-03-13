@@ -85,6 +85,13 @@ FloatGrid *ReadFloatTifGrid(const char *file, FloatGrid *incGrid) {
     return NULL;
   }
 
+  if (TIFFIsTiled(tif)) {
+    WARNING_LOGF("%s is an unsupported tiled GeoTiff", file);
+    GTIFFree(gtif);
+    XTIFFClose(tif);
+    return NULL;
+  }
+
   int width, height;
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
