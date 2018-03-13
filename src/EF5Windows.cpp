@@ -1,7 +1,6 @@
-#include "EF5Windows.h"
-#include "Config.h"
-#include "Defines.h"
-#include "ExecutionController.h"
+#include <windows.h>
+
+// Other headers
 #include <cstdio>
 #include <process.h>
 #include <richedit.h>
@@ -9,7 +8,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <windows.h>
+
+
+// User headers
+#include "EF5Windows.h"
+#include "Config.h"
+#include "Defines.h"
+#include "ExecutionController.h"
 
 #define COLOR_WHITE 0xFFFFFF
 #define COLOR_GREY 0xC0C0C0
