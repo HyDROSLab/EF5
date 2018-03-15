@@ -24,6 +24,18 @@ jobs:
           - binutils-mingw-w64-x86-64
           - mingw-w64-x86-64-dev
           - zlib1g-dev
+    - stage: build
+      os: linux
+      compiler: i686-w64-mingw32-gcc
+      env: CROSS=mingw32
+      addons:
+        apt:
+          packages:
+          - gcc-mingw-w64-i686
+          - g++-mingw-w64-i686
+          - binutils-mingw-w64-i686
+          - mingw-w64-i686-dev
+          - zlib1g-dev
     - stage: deploy
       script: echo "Deploying to GitHub" && ls -al ~/shared
       deploy:
@@ -33,6 +45,7 @@ jobs:
           secure: bF9rQo5rxQlKWhg9HgoqJNRYoGJnCiaaZNCcAoR8ZojgBTbk3vCnqRmiEHYAs7yF7SrVEfljec12SN7DQla7Y1WGTh9YrrTW6qzmrRNde18h7TZ6QgBMjz7z5hN0zYFxlaEvavLwi4uoinQWgf8tvMiRVO/SBwF9T7qVrb9/KLwn2LD0ngtJSI/kAPVVGEH3nh2YqmsMKaSjakoPSCm+WyDlscLgBEdXymh3SwWlaV/Mfk+ys59n7RZeV1qpZqB2ibQiI1WDikB460YxVTdz/PigAK0j4DVjPU7MO6jir2ttb2kkJGkMnt5zdcs6XioJCzpTWx6eYE6oE8HI0pgIiAPpBZleU/w76umgQaIsu6esHojhWk096WyNWJWYwO9abMAdM0T84Mf2cP5lUxKic141RTfrffrT40UHjw3Q8+hqXssiXwXMSmGaN9pWdFZ3+L/KgJxMroGM4FHvCROkBBkyj1GmRACWWli/WYxmzXK0pvFLoQvAxJlFkSkzYFqOANeBAui+ejj7y7uEsj9X/q326MOrHucGqK5408RVcOqdNVNP5yt4nyFSuZNhltoFsvJ3S0+EJbBkQ413FYzXzpDk1n2OrQBiAK0sBXGYmfTxqD2lSONIbDGP1s24z2XCVAICF882ji2kIY0jMhOrVlyQNJzIQeD2ixuIplbamk0=
         file:
           - /home/travis/shared/ef5_win64.zip
+          - /home/travis/shared/ef5_win32.zip
           - /home/travis/shared/ef5_linux.tar.gz
         on:
           repo: HyDROSLab/EF5
@@ -45,6 +58,7 @@ before_install: |-
   aws s3 sync s3://ef5-github-builds/shared ~/shared
   if [ "$CROSS" == "mingw64" ]
   then
+    set -e
     export CC=x86_64-w64-mingw32-gcc
     export CXX=x86_64-w64-mingw32-g++
     export CXXFLAGS="-I/usr/local/include -I/usr/x86_64-w64-mingw32/sys-root/mingw/include $CXXFLAGS"
@@ -72,6 +86,38 @@ before_install: |-
     make
     sudo make install
     cd $TRAVIS_BUILD_DIR
+    set +e
+  elif [ "$CROSS" == "mingw32" ]
+  then
+    set -e
+    export CC=i686-w64-mingw32-gcc
+    export CXX=i686-w64-mingw32-g++
+    export CXXFLAGS="-I/usr/local/include -I/usr/i686-w64-mingw32/sys-root/mingw/include $CXXFLAGS"
+    export CFLAGS="-I/usr/local/include -I/usr/i686-w64-mingw32/sys-root/mingw/include $CFLAGS"
+    export LDFLAGS="-L/usr/i686-w64-mingw32/sys-root/mingw/lib $LDFLAGS"
+    export PATH=/usr/i686-w64-mingw32/sys-root/mingw/lib:$PATH
+    wget http://zlib.net/zlib-1.2.11.tar.gz
+    tar zxf zlib-1.2.11.tar.gz
+    cd zlib-1.2.11
+    sed -e s/"PREFIX ="/"PREFIX = i686-w64-mingw32-"/ -i win32/Makefile.gcc
+    make -f win32/Makefile.gcc
+    sudo INCLUDE_PATH=/usr/local/include LIBRARY_PATH=/usr/i686-w64-mingw32/sys-root/mingw/lib BINARY_PATH=/usr/i686-w64-mingw32/sys-root/mingw/lib/bin make -f win32/Makefile.gcc install
+    cd
+    wget http://dl.maptools.org/dl/libtiff/tiff-3.8.2.tar.gz
+    tar zxf tiff-3.8.2.tar.gz
+    cd tiff-3.8.2
+    ./configure --host=i686-w64-mingw32 --prefix=/usr/i686-w64-mingw32/sys-root/mingw --enable-cxx --enable-static --with-zlib-include-dir=/usr/local/include --with-zlib-lib-dir=/usr/i686-w64-mingw32/sys-root/mingw/lib --disable-shared
+    make
+    sudo make install
+    cd
+    wget http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.2.tar.gz
+    tar zxf libgeotiff-1.4.2.tar.gz
+    cd libgeotiff-1.4.2
+    ./configure --host=i686-w64-mingw32 --without-proj --prefix=/usr/i686-w64-mingw32/sys-root/mingw --enable-static --with-zip=yes --enable-incode-epsg --disable-static
+    make
+    sudo make install
+    cd $TRAVIS_BUILD_DIR
+    set +e
   fi
 script: |-
   if [ "$CROSS" == "mingw64" ]
@@ -79,6 +125,13 @@ script: |-
     set -e
     autoreconf --force --install && ./configure --host=x86_64-w64-mingw32 && make
     cd bin && mv ef5.exe ef5_64.exe && zip ef5_win64.zip ef5_64.exe && mv ef5_win64.zip ~/shared/.
+    aws s3 sync ~/shared s3://ef5-github-builds/shared
+    set +e
+  elif [ "$CROSS" == "mingw32" ]
+  then
+    set -e
+    autoreconf --force --install && ./configure --host=i686-w64-mingw32 && make
+    cd bin && mv ef5.exe ef5_32.exe && zip ef5_win32.zip ef5_32.exe && mv ef5_win32.zip ~/shared/.
     aws s3 sync ~/shared s3://ef5-github-builds/shared
     set +e
   elif [ "$CROSS" == "osx" ]
