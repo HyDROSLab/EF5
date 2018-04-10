@@ -317,7 +317,7 @@ void ClipBasicGrids(long x, long y, long search, const char *output) {
 	maxY = loc.y + search;
 	minY = loc.y - search;
   
-	FindIndBasins(-124.73, -66.95, 50.00, 24.5);
+	FindIndBasins(-180.0, 180.0, 90.0, -90.0);
 	//FindIndBasins(-84.84, -67.26, 44.17, 35.76);
   
 	printf("Search box is %ld, %ld, %ld, %ld, %ld, %ld\n", minX, maxX, minY, maxY, x, y);
@@ -726,6 +726,10 @@ void CarveBasin(BasinConfigSection *basin, std::vector<GridNode> *nodes, std::ma
 			gauge->SetLat(ref.y);
 			gauge->SetLon(ref.x);
 		}
+    if (g_DEM->data[loc->y][loc->x] == g_DEM->noData || g_FAM->data[loc->y][loc->x] == g_FAM->noData ||  g_FAM->data[loc->y][loc->x] < 0) {
+      ERROR_LOGF("Gauge \"%s\" is located in a no data grid cell!", gauge->GetName());
+      return;
+    }
 		gauge->SetFlowAccum(g_FAM->data[loc->y][loc->x]);
 		gauge->SetUsed(false);
 		INFO_LOGF("Gauge %s (%f, %f; %ld, %ld): FAM %ld", gauge->GetName(), gauge->GetLat(), gauge->GetLon(), loc->y, loc->x, gauge->GetFlowAccum());
@@ -918,7 +922,8 @@ void CarveBasin(BasinConfigSection *basin, std::vector<GridNode> *nodes, std::ma
 			//We compute slope here too!
 			if (keepGoing) {
 			for (int i = 1; i < FLOW_QTY; i++) {
-				if (TestUpstream(currentN, (FLOW_DIR)i, &nextNode)) {
+				if (TestUpstream(currentN, (FLOW_DIR)i, &nextNode) && currentNode < totalAccum) {
+          //printf("currentNode is %li\n", currentNode);
 					GridNode *nextN = &(*nodes)[currentNode];
 					nextN->index = currentNode;
 					currentNode++;
@@ -1071,7 +1076,7 @@ bool TestUpstream(long nextX, long nextY, FLOW_DIR dir, GridLoc *loc) {
 			return false;
 	}
   
-	if (nextX >= 0 && nextY >= 0 && nextX < g_DDM->numCols && nextY < g_DDM->numRows && g_DDM->data[nextY][nextX] == wantDir) { // && g_FAM->data[nextY][nextX] <= currentFAC) {
+	if (nextX >= 0 && nextY >= 0 && nextX < g_DDM->numCols && nextY < g_DDM->numRows && g_DDM->data[nextY][nextX] == wantDir && g_DEM->data[nextY][nextX] != g_DEM->noData && g_FAM->data[nextY][nextX] != g_FAM->noData) { // && g_FAM->data[nextY][nextX] <= currentFAC) {
 		loc->x = nextX;
 		loc->y = nextY;
 		return true;
