@@ -66,7 +66,7 @@ FloatGrid *ReadFloatTRMMRTGrid(char *file, FloatGrid *grid) {
       unsigned short realData =
           (shortData[j] >> 8) | ((shortData[j] & 0xFF) << 8);
       float floatData = 0;
-      if (realData >= 0 && realData <= 30000) {
+      if (realData <= 30000) {
         floatData = ((float)realData) / 100.0;
       }
       grid->data[i][realJ] = floatData;

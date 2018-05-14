@@ -26,8 +26,6 @@ float GeographicProjection::GetLen(float x, float y, FLOW_DIR dir) {
     return 0; // We would do __builtin_unreachable(); but Apple's GCC lags
               // behind
   }
-
-  return 0;
 }
 
 float GeographicProjection::GetArea(float x, float y) {
