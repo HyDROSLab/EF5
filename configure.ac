@@ -21,9 +21,11 @@ esac
 AM_CONDITIONAL(WINDOWS, test x$WINDOWS = xyes)
 #AX_CHECK_COMPILE_FLAG([-Wall], [$WALL="-Wall"])
 WALL=-Wall;
+OMP=-lgomp
 case $CXX in
      pgc++)
 	WALL=
+	OMP=
 	;;
      *)
 	;;
