@@ -50,7 +50,7 @@ bool PrecipReader::Read(char *file, SUPPORTED_PRECIP_TYPES type,
     break;
     // case PRECIP_TRMMV7:
     //	precipGrid = ReadFloatTRMMV6Grid(file);
-    break;
+    //  break;
   default:
     ERROR_LOG("Unsupported precip format!");
   }

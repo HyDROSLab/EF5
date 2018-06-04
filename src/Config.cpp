@@ -118,7 +118,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
         valIdx = 0;
         continue;
       }
-      break;
     }
     case PARSE_CPLUSPLUS_COMMENT:
     case PARSE_BASH_COMMENT: {
@@ -129,7 +128,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
       } else {
         continue;
       }
-      break;
     }
     case PARSE_C_COMMENT: {
       if (buffer[i] == '\n') {
@@ -142,7 +140,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
       } else {
         continue;
       }
-      break;
     }
     case PARSE_SECTION_NAME: {
       if (buffer[i] == ' ') {
@@ -183,7 +180,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
         }
         continue;
       }
-      break;
     }
     case PARSE_SECTION_VALUE: {
       if (buffer[i] == ']') {
@@ -222,7 +218,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
         }
         continue;
       }
-      break;
     }
     case PARSE_NAME: {
       if (buffer[i] == '=') {
@@ -246,7 +241,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
         }
         continue;
       }
-      break;
     }
     case PARSE_VALUE: {
       if (buffer[i] == ' ' || buffer[i] == '\n' || buffer[i] == '\r') {
@@ -274,7 +268,6 @@ CONFIG_PARSE_RESULTS Config::ParseConfig() {
         }
         continue;
       }
-      break;
     }
     default:
       INFO_LOGF("Line(%i): First unprocessed line!", line);
