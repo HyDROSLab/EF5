@@ -53,7 +53,7 @@ void Snow17Model::InitializeStates(TimeVar *beginTime, char *statePath) {
   timeStr.ProcessNameLoose(NULL);
   timeStr.UpdateName(beginTime->GetTM());
 
-  char buffer[255];
+  char buffer[300];
   for (int p = 0; p < STATE_SNOW17_QTY; p++) {
     sprintf(buffer, "%s/snow17_%s_%s.tif", statePath, stateStrings[p],
             timeStr.GetName());
@@ -97,7 +97,7 @@ void Snow17Model::SaveStates(TimeVar *currentTime, char *statePath,
   std::vector<float> dataVals;
   dataVals.resize(nodes->size());
 
-  char buffer[255];
+  char buffer[300];
   for (int p = 0; p < STATE_SNOW17_QTY; p++) {
     sprintf(buffer, "%s/snow17_%s_%s.tif", statePath, stateStrings[p],
             timeStr.GetName());

@@ -41,7 +41,7 @@ void SAC::InitializeStates(TimeVar *beginTime, char *statePath) {
   timeStr.ProcessNameLoose(NULL);
   timeStr.UpdateName(beginTime->GetTM());
 
-  char buffer[255];
+  char buffer[300];
   sprintf(buffer, "%s/uztwc_%s.tif", statePath, timeStr.GetName());
   FloatGrid *smGrid = ReadFloatTifGrid(buffer);
   if (smGrid) {
@@ -175,7 +175,7 @@ void SAC::SaveStates(TimeVar *currentTime, char *statePath,
 
   // UZTWC, UZFWC, LZTWC, LZFSC, LZFPC, ADIMC
 
-  char buffer[255];
+  char buffer[300];
   sprintf(buffer, "%s/uztwc_%s.tif", statePath, timeStr.GetName());
   for (size_t i = 0; i < nodes->size(); i++) {
     SACGridNode *cNode = &(sacNodes[i]);
