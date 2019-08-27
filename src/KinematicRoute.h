@@ -16,6 +16,7 @@ struct KWGridNode : BasicGridNode {
   float states[STATE_KW_QTY];
 
   bool channelGridCell;
+  bool daActive;
   double slopeSqrt;
   double hillSlopeSqrt;
 
