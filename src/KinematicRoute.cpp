@@ -16,46 +16,23 @@ KWRoute::KWRoute() {}
 KWRoute::~KWRoute() {}
 
 float KWRoute::SetObsInflow(long index, float inflow) {
-  KWGridNode *cNode = &(kwNodes[index]);
-  GridNode *node = &nodes->at(index);
-  float prev;
-  if (!node->channelGridCell) {
-    prev = cNode->states[STATE_KW_PQ] * node->horLen;
-    cNode->states[STATE_KW_PQ] = inflow / node->horLen;
-    cNode->incomingWaterOverland = inflow / node->horLen;
-  } else {
-    prev = cNode->states[STATE_KW_PQ];
-    float diff = 0.0;
-    if (inflow > 1.0 && prev > 1.0) {
-      diff = inflow / prev - 1.0;
-    }
-    GaugeConfigSection *thisGauge = node->gauge;
-    float multiplier = 1.0;
-    if (diff > 0.2) {
-      multiplier = 0.5;
-    } else if (diff < -0.2) {
-      multiplier = 2.0;
-    }
-    printf(" Multiplier %f,%f,%f,%f ", multiplier, diff, inflow, prev);
-    if (multiplier != 1.0) {
-      size_t numNodes = nodes->size();
-      for (size_t i = 0; i < numNodes; i++) {
-        node = &nodes->at(i);
-        if (node->gauge == thisGauge) {
-          KWGridNode *cNode = &(kwNodes[i]);
-          cNode->params[PARAM_KINEMATIC_ALPHA] *= multiplier;
-          if (cNode->params[PARAM_KINEMATIC_ALPHA] < 0.01) {
-            cNode->params[PARAM_KINEMATIC_ALPHA] = 0.01;
-          } else if (cNode->params[PARAM_KINEMATIC_ALPHA] > 200.0) {
-            cNode->params[PARAM_KINEMATIC_ALPHA] = 200.0;
-          }
+        KWGridNode *cNode = &(kwNodes[index]);
+        GridNode *node = &nodes->at(index);
+        float prev;
+        if (!node->channelGridCell) {
+                prev = cNode->states[STATE_KW_PQ] * node->horLen;
+                cNode->states[STATE_KW_PO] = 0.0;
+                cNode->states[STATE_KW_PQ] = inflow / node->horLen;
+                cNode->incomingWaterOverland = inflow / node->horLen;
+                cNode->daActive = true;
+        } else {
+                prev = cNode->states[STATE_KW_PQ];
+                cNode->states[STATE_KW_PO] = 0.0;
+                cNode->states[STATE_KW_PQ] = inflow;
+                cNode->incomingWaterChannel = inflow;
+                cNode->daActive = true;
         }
-      }
-    }
-    cNode->states[STATE_KW_PQ] = inflow;
-    cNode->incomingWaterChannel = inflow;
-  }
-  return prev;
+        return prev;
 }
 
 bool KWRoute::InitializeModel(
@@ -80,6 +57,7 @@ bool KWRoute::InitializeModel(
     cNode->incomingWater[KW_LAYER_FASTFLOW] = 0.0;
     cNode->incomingWaterOverland = 0.0;
     cNode->incomingWaterChannel = 0.0;
+    cNode->daActive = false;
     for (int p = 0; p < STATE_KW_QTY; p++) {
       cNode->states[p] = 0.0;
     }
@@ -181,6 +159,7 @@ bool KWRoute::Route(float stepHours, std::vector<float> *fastFlow,
     fastFlow->at(i) = 0.0; // cNode->incomingWater[KW_LAYER_FASTFLOW];
     cNode->incomingWaterOverland = 0.0;
     cNode->incomingWaterChannel = 0.0;
+    cNode->daActive = false;
     if (!cNode->channelGridCell) {
       float q = cNode->incomingWater[KW_LAYER_FASTFLOW] * nodes->at(i).horLen;
       q += (cNode->incomingWater[KW_LAYER_INTERFLOW] * nodes->at(i).area / 3.6);
@@ -256,7 +235,7 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
     float newq = estq;
 
     cNode->states[STATE_KW_PQ] = newq;
-    if (node->downStreamNode != INVALID_DOWNSTREAM_NODE) {
+    if (node->downStreamNode != INVALID_DOWNSTREAM_NODE && !kwNodes[nodes->at(node->downStreamNode).modelIndex].daActive) {
       kwNodes[nodes->at(node->downStreamNode).modelIndex]
           .incomingWaterOverland += newq;
     }
@@ -408,7 +387,7 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
     }*/
     cNode->states[STATE_KW_PQ] =
         newWater; // Update previous Q for further routing if "steps" > 1
-    if (node->downStreamNode != INVALID_DOWNSTREAM_NODE) {
+    if (node->downStreamNode != INVALID_DOWNSTREAM_NODE && !kwNodes[nodes->at(node->downStreamNode).modelIndex].daActive) {
       kwNodes[nodes->at(node->downStreamNode).modelIndex]
           .incomingWaterChannel += newWater;
     }
