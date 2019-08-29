@@ -80,6 +80,16 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
     timeStepTemp = NULL;
   }
 
+  if (timeStepPrecip->GetTimeInSec() < timeStep->GetTimeInSec()) {
+    ERROR_LOG("The time step for precipitation must be greater or equal to the overall time step.");
+    return false;
+  }
+
+  if (timeStepPET->GetTimeInSec() < timeStep->GetTimeInSec()) {
+    ERROR_LOG("The time step for PET must be greater or equal to the overall time step.");
+    return false;
+  }
+
   // Initialize unit converters
   precipConvert =
       (3600.0 / (float)task->GetPrecipSec()->GetUnitTime()->GetTimeInSec());
