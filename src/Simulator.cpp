@@ -1189,6 +1189,12 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   int currentYear = -1;
   int indexYear = -1;
 
+  // 2019-04: output gridded surface runoff ---------------------------------
+  std::vector<float> currentFF_o;
+
+  currentFF_o.resize(currentFF.size());
+  // ---------------------------------
+
   // Initialize TempReader
   if (sModel) {
     tempReader.ReadDEM(tempSec->GetDEM());
@@ -1364,6 +1370,15 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
                             &(currentPETCali[tsIndex]), &currentFF, &currentSF,
                             &SM);
     }
+
+    // 2019-04: output gridded surface runoff ---------------------------------
+    for (size_t i = 0; i < currentFF.size(); i++) {
+      currentFF_o[i] = currentFF[i] * 3600.0f;  // from mm/sec to mm/hr
+    }
+    //memcpy(currentFF_o,currentFF,sizeof(currentFF_o));
+    //memcpy(currentFF_o, currentFF, sizeof(float) * currentFF.size() );
+    // ---------------------------------
+
     if (outputTS) {
       gaugeMap.GaugeAverage(&nodes, &currentFF, &avgFF);
       gaugeMap.GaugeAverage(&nodes, &currentSF, &avgSF);
@@ -1544,6 +1559,15 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
                 currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
+
+      // 2019-04: output gridded surface runoff ---------------------------------
+      //sprintf(buffer, "%s/surR.%s.%s.asc", outputPath,
+      sprintf(buffer, "%s/surR.%s.%s.tif", outputPath,
+              currentTimeTextOutput.GetName(), wbModel->GetName());
+      //gridWriter.WriteGrid(&nodes, &currentFF, buffer, true);
+      //gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, true);
+      gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, false);
+      // ---------------------------------
     }
 
 #if _OPENMP

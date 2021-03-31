@@ -5,25 +5,26 @@
 #include <omp.h>
 #endif
 #include "AscGrid.h"
-#include "CRESTModel.h"
+#include "CRESTPhysModel.h"
 #include "DatedName.h"
 
 static const char *stateStrings[] = {
     "SM",
+    "GW"
 };
 
-CRESTModel::CRESTModel() {}
+CRESTPHYSModel::CRESTPHYSModel() {}
 
-CRESTModel::~CRESTModel() {}
+CRESTPHYSModel::~CRESTPHYSModel() {}
 
-bool CRESTModel::InitializeModel(
+bool CRESTPHYSModel::InitializeModel(
     std::vector<GridNode> *newNodes,
     std::map<GaugeConfigSection *, float *> *paramSettings,
     std::vector<FloatGrid *> *paramGrids) {
 
   nodes = newNodes;
-  if (crestNodes.size() != nodes->size()) {
-    crestNodes.resize(nodes->size());
+  if (crestphysNodes.size() != nodes->size()) {
+    crestphysNodes.resize(nodes->size());
   }
 
   // Fill in modelIndex in the gridNodes
@@ -38,24 +39,24 @@ bool CRESTModel::InitializeModel(
   return true;
 }
 
-void CRESTModel::InitializeStates(TimeVar *beginTime, char *statePath) {
+void CRESTPHYSModel::InitializeStates(TimeVar *beginTime, char *statePath) {
   DatedName timeStr;
   timeStr.SetNameStr("YYYYMMDD_HHUU");
   timeStr.ProcessNameLoose(NULL);
   timeStr.UpdateName(beginTime->GetTM());
 
   char buffer[300];
-  for (int p = 0; p < STATE_CREST_QTY; p++) {
-    sprintf(buffer, "%s/crest_%s_%s.tif", statePath, stateStrings[p],
+  for (int p = 0; p < STATE_CRESTPHYS_QTY; p++) {
+    sprintf(buffer, "%s/crestphys_%s_%s.tif", statePath, stateStrings[p],
             timeStr.GetName());
 
     FloatGrid *sGrid = ReadFloatTifGrid(buffer);
     if (sGrid) {
-      printf("Using CREST %s State Grid %s\n", stateStrings[p], buffer);
+      printf("Using CRESTPHYS %s State Grid %s\n", stateStrings[p], buffer);
       if (g_DEM->IsSpatialMatch(sGrid)) {
         for (size_t i = 0; i < nodes->size(); i++) {
           GridNode *node = &nodes->at(i);
-          CRESTGridNode *cNode = &(crestNodes[i]);
+          CRESTPHYSGridNode *cNode = &(crestphysNodes[i]);
           if (sGrid->data[node->y][node->x] != sGrid->noData) {
             cNode->states[p] = sGrid->data[node->y][node->x];
           }
@@ -64,7 +65,7 @@ void CRESTModel::InitializeStates(TimeVar *beginTime, char *statePath) {
         GridLoc pt;
         for (size_t i = 0; i < nodes->size(); i++) {
           GridNode *node = &(nodes->at(i));
-          CRESTGridNode *cNode = &(crestNodes[i]);
+          CRESTPHYSGridNode *cNode = &(crestphysNodes[i]);
           if (sGrid->GetGridLoc(node->refLoc.x, node->refLoc.y, &pt) &&
               sGrid->data[pt.y][pt.x] != sGrid->noData) {
             cNode->states[p] = sGrid->data[pt.y][pt.x];
@@ -73,12 +74,12 @@ void CRESTModel::InitializeStates(TimeVar *beginTime, char *statePath) {
       }
       delete sGrid;
     } else {
-      printf("CREST %s State Grid %s not found!\n", stateStrings[p], buffer);
+      printf("CRESTPHYS %s State Grid %s not found!\n", stateStrings[p], buffer);
     }
   }
 }
 
-void CRESTModel::SaveStates(TimeVar *currentTime, char *statePath,
+void CRESTPHYSModel::SaveStates(TimeVar *currentTime, char *statePath,
                             GridWriterFull *gridWriter) {
   DatedName timeStr;
   timeStr.SetNameStr("YYYYMMDD_HHUU");
@@ -89,23 +90,25 @@ void CRESTModel::SaveStates(TimeVar *currentTime, char *statePath,
   dataVals.resize(nodes->size());
 
   char buffer[300];
-  for (int p = 0; p < STATE_CREST_QTY; p++) {
-    sprintf(buffer, "%s/crest_%s_%s.tif", statePath, stateStrings[p],
+  for (int p = 0; p < STATE_CRESTPHYS_QTY; p++) {
+    sprintf(buffer, "%s/crestphys_%s_%s.tif", statePath, stateStrings[p],
             timeStr.GetName());
     for (size_t i = 0; i < nodes->size(); i++) {
-      CRESTGridNode *cNode = &(crestNodes[i]);
+      CRESTPHYSGridNode *cNode = &(crestphysNodes[i]);
       dataVals[i] = cNode->states[p];
     }
     gridWriter->WriteGrid(nodes, &dataVals, buffer, false);
   }
 }
 
-bool CRESTModel::WaterBalance(float stepHours,
+bool CRESTPHYSModel::WaterBalance(float stepHours,
                               std::vector<float> *precip,
                               std::vector<float> *pet,
                               std::vector<float> *fastFlow,
-                              std::vector<float> *slowFlow,
-                              std::vector<float> *soilMoisture) {
+                              std::vector<float> *interFlow,
+                              std::vector<float> *baseFlow,
+                              std::vector<float> *soilMoisture,
+                              std::vector<float> *groundwater) {
 
   size_t numNodes = nodes->size();
 
@@ -114,24 +117,30 @@ bool CRESTModel::WaterBalance(float stepHours,
 #endif
   for (size_t i = 0; i < numNodes; i++) {
     GridNode *node = &nodes->at(i);
-    CRESTGridNode *cNode = &(crestNodes[i]);
-    WaterBalanceInt(node, cNode, stepHours, precip->at(i), pet->at(i),
-                    &(fastFlow->at(i)), &(slowFlow->at(i)));
+    CRESTPHYSGridNode *cNode = &(crestphysNodes[i]);
+    WaterBalanceInt(node,
+                    cNode,
+                    stepHours,
+                    precip->at(i),
+                    pet->at(i),
+                    &(fastFlow->at(i)),
+                    &(interFlow->at(i)),
+                    &(baseFlow->at(i)));
     soilMoisture->at(i) =
-        cNode->states[STATE_CREST_SM] * 100.0 / cNode->params[PARAM_CREST_WM];
+        cNode->states[STATE_CRESTPHYS_SM] * 100.0 / cNode->params[PARAM_CREST_WM];
   }
 
   return true;
 }
 
-void CRESTModel::WaterBalanceInt(GridNode *node, CRESTGridNode *cNode,
+void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
                                  float stepHours, float precipIn, float petIn,
-                                 float *fastFlow, float *slowFlow) {
+                                 float *fastFlow, float *interFlow, float *baseFlow) {
   double precip = precipIn * stepHours; // precipIn is mm/hr, precip is mm
   double pet = petIn * stepHours;       // petIn in mm/hr, pet is mm
   double R = 0.0, Wo = 0.0;
 
-  double adjPET = pet * cNode->params[PARAM_CREST_KE];
+  double adjPET = pet * cNode->params[PARAM_CRESTPHYS_KE];
   double temX = 0.0;
 
   // If we aren't a channel cell, add routed in overland to precip
@@ -140,61 +149,64 @@ void CRESTModel::WaterBalanceInt(GridNode *node, CRESTGridNode *cNode,
     *fastFlow = 0.0;
   }*/
 
+  // Base flow continuity
+  cNode->states[STATE_CRESTPHYS_GW]+= *baseFlow;
+
   // We have more water coming in than leaving via ET.
   if (precip > adjPET) {
     double precipSoil =
-        (precip - adjPET) * (1 - cNode->params[PARAM_CREST_IM]); // This is the
+        (precip - adjPET) * (1 - cNode->params[PARAM_CRESTPHYS_IM]); // This is the
                                                                  // precip that
                                                                  // makes it to
                                                                  // the soil
     double precipImperv =
         precip - adjPET - precipSoil; // Portion of precip on impervious area
 
-    // cNode->states[STATE_CREST_SM] += *slowFlow;
+    // cNode->states[STATE_CRESTPHYS_SM] += *slowFlow;
     //*slowFlow = 0.0;
 
     double interflowExcess =
-        cNode->states[STATE_CREST_SM] - cNode->params[PARAM_CREST_WM];
+        cNode->states[STATE_CRESTPHYS_SM] - cNode->params[PARAM_CRESTPHYS_WM];
     if (interflowExcess < 0.0) {
       interflowExcess = 0.0;
     }
 
-    if (cNode->states[STATE_CREST_SM] > cNode->params[PARAM_CREST_WM]) {
-      cNode->states[STATE_CREST_SM] = cNode->params[PARAM_CREST_WM];
+    if (cNode->states[STATE_CRESTPHYS_SM] > cNode->params[PARAM_CRESTPHYS_WM]) {
+      cNode->states[STATE_CRESTPHYS_SM] = cNode->params[PARAM_CRESTPHYS_WM];
     }
 
-    if (cNode->states[STATE_CREST_SM] < cNode->params[PARAM_CREST_WM]) {
+    if (cNode->states[STATE_CRESTPHYS_SM] < cNode->params[PARAM_CRESTPHYS_WM]) {
       double Wmaxm =
-          cNode->params[PARAM_CREST_WM] * (1 + cNode->params[PARAM_CREST_B]);
-      double A = Wmaxm * (1 - pow(1 - cNode->states[STATE_CREST_SM] /
-                                          cNode->params[PARAM_CREST_WM],
-                                  1 / (1 + cNode->params[PARAM_CREST_B])));
+          cNode->params[PARAM_CRESTPHYS_WM] * (1 + cNode->params[PARAM_CRESTPHYS_B]);
+      double A = Wmaxm * (1 - pow(1 - cNode->states[STATE_CRESTPHYS_SM] /
+                                          cNode->params[PARAM_CRESTPHYS_WM],
+                                  1 / (1 + cNode->params[PARAM_CRESTPHYS_B])));
       if (precipSoil + A >= Wmaxm) {
         R = precipSoil -
-            (cNode->params[PARAM_CREST_WM] -
-             cNode->states[STATE_CREST_SM]); // Leftovers after filling SM
+            (cNode->params[PARAM_CRESTPHYS_WM] -
+             cNode->states[STATE_CRESTPHYS_SM]); // Leftovers after filling SM
 
         if (R < 0) {
           printf("R to %f, [%f, %f, %f, %f, %f, %f]\n", R,
-                 cNode->params[PARAM_CREST_WM], cNode->params[PARAM_CREST_B],
-                 cNode->states[STATE_CREST_SM], A, Wmaxm, precipSoil);
+                 cNode->params[PARAM_CRESTPHYS_WM], cNode->params[PARAM_CRESTPHYS_B],
+                 cNode->states[STATE_CRESTPHYS_SM], A, Wmaxm, precipSoil);
           R = 0.0;
         }
 
-        Wo = cNode->params[PARAM_CREST_WM];
+        Wo = cNode->params[PARAM_CRESTPHYS_WM];
 
       } else {
         double infiltration =
-            cNode->params[PARAM_CREST_WM] *
-            (pow(1 - A / Wmaxm, 1 + cNode->params[PARAM_CREST_B]) -
+            cNode->params[PARAM_CRESTPHYS_WM] *
+            (pow(1 - A / Wmaxm, 1 + cNode->params[PARAM_CRESTPHYS_B]) -
              pow(1 - (A + precipSoil) / Wmaxm,
-                 1 + cNode->params[PARAM_CREST_B]));
+                 1 + cNode->params[PARAM_CRESTPHYS_B]));
         if (infiltration > precipSoil) {
           infiltration = precipSoil;
         } else if (infiltration < 0.0) {
           printf("Infiltration went to %f, [%f, %f, %f, %f, %f, %f]\n",
-                 infiltration, cNode->params[PARAM_CREST_WM],
-                 cNode->params[PARAM_CREST_B], cNode->states[STATE_CREST_SM], A,
+                 infiltration, cNode->params[PARAM_CRESTPHYS_WM],
+                 cNode->params[PARAM_CRESTPHYS_B], cNode->states[STATE_CRESTPHYS_SM], A,
                  Wmaxm, precipSoil);
         }
 
@@ -202,78 +214,80 @@ void CRESTModel::WaterBalanceInt(GridNode *node, CRESTGridNode *cNode,
 
         if (R < 0) {
           printf("R (infil) to %f, [%f, %f, %f, %f, %f, %f]\n", R,
-                 cNode->params[PARAM_CREST_WM], cNode->params[PARAM_CREST_B],
-                 cNode->states[STATE_CREST_SM], A, Wmaxm, precipSoil);
+                 cNode->params[PARAM_CRESTPHYS_WM], cNode->params[PARAM_CRESTPHYS_B],
+                 cNode->states[STATE_CRESTPHYS_SM], A, Wmaxm, precipSoil);
           R = 0.0;
         }
-        Wo = cNode->states[STATE_CREST_SM] + infiltration;
+        Wo = cNode->states[STATE_CRESTPHYS_SM] + infiltration;
       }
     } else {
       R = precipSoil;
-      Wo = cNode->params[PARAM_CREST_WM];
+      Wo = cNode->params[PARAM_CRESTPHYS_WM];
     }
 
     // Now R is excess water, split it between overland & interflow
 
-    temX = (cNode->states[STATE_CREST_SM] + Wo) /
-           cNode->params[PARAM_CREST_WM] / 2 *
-           (cNode->params[PARAM_CREST_FC] *
+    temX = (cNode->states[STATE_CRESTPHYS_SM] + Wo) /
+           cNode->params[PARAM_CRESTPHYS_WM] / 2 *
+           (cNode->params[PARAM_CRESTPHYS_FC] *
             stepHours); // Calculate how much water can infiltrate
 
     if (R <= temX) {
-      cNode->excess[CREST_LAYER_INTERFLOW] = R;
+      cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = R;
     } else {
-      cNode->excess[CREST_LAYER_INTERFLOW] = temX;
+      cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = temX;
     }
-    cNode->excess[CREST_LAYER_OVERLAND] =
-        R - cNode->excess[CREST_LAYER_INTERFLOW] + precipImperv;
+    cNode->excess[CRESTPHYS_LAYER_OVERLAND] =
+        R - cNode->excess[CRESTPHYS_LAYER_INTERFLOW] + precipImperv;
 
     cNode->actET = adjPET;
 
-    cNode->excess[CREST_LAYER_INTERFLOW] +=
+    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] +=
         interflowExcess; // Extra interflow that got routed.
   } else {               // All the incoming precip goes straight to ET
-    cNode->excess[CREST_LAYER_OVERLAND] = 0.0;
+    cNode->excess[CRESTPHYS_LAYER_OVERLAND] = 0.0;
 
-    // cNode->states[STATE_CREST_SM] += *slowFlow;
+    // cNode->states[STATE_CRESTPHYS_SM] += *slowFlow;
     //*slowFlow = 0.0;
 
     double interflowExcess =
-        cNode->states[STATE_CREST_SM] - cNode->params[PARAM_CREST_WM];
+        cNode->states[STATE_CRESTPHYS_SM] - cNode->params[PARAM_CRESTPHYS_WM];
     if (interflowExcess < 0.0) {
       interflowExcess = 0.0;
     }
-    cNode->excess[CREST_LAYER_INTERFLOW] = interflowExcess;
+    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = interflowExcess;
 
-    if (cNode->states[STATE_CREST_SM] > cNode->params[PARAM_CREST_WM]) {
-      cNode->states[STATE_CREST_SM] = cNode->params[PARAM_CREST_WM];
+    if (cNode->states[STATE_CRESTPHYS_SM] > cNode->params[PARAM_CRESTPHYS_WM]) {
+      cNode->states[STATE_CRESTPHYS_SM] = cNode->params[PARAM_CRESTPHYS_WM];
     }
 
-    double ExcessET = (adjPET - precip) * cNode->states[STATE_CREST_SM] /
-                      cNode->params[PARAM_CREST_WM];
-    if (ExcessET < cNode->states[STATE_CREST_SM]) {
-      Wo = cNode->states[STATE_CREST_SM] -
+    double ExcessET = (adjPET - precip) * cNode->states[STATE_CRESTPHYS_SM] /
+                      cNode->params[PARAM_CRESTPHYS_WM];
+    if (ExcessET < cNode->states[STATE_CRESTPHYS_SM]) {
+      Wo = cNode->states[STATE_CRESTPHYS_SM] -
            ExcessET; // We can evaporate away ExcessET too.
     } else {
       Wo = 0.0; // We don't have enough to evaporate ExcessET.
-      ExcessET = cNode->states[STATE_CREST_SM];
+      ExcessET = cNode->states[STATE_CRESTPHYS_SM];
     }
     cNode->actET = ExcessET + precip;
   }
 
-  cNode->states[STATE_CREST_SM] = Wo;
+  cNode->states[STATE_CRESTPHYS_SM] = Wo;
 
   // Add Overland Excess Water to fastFlow
-  *fastFlow += (cNode->excess[CREST_LAYER_OVERLAND] / (stepHours * 3600.0f));
+  *fastFlow += (cNode->excess[CRESTPHYS_LAYER_OVERLAND] / (stepHours * 3600.0f));
 
   // Add Interflow Excess Water to slowFlow
-  *slowFlow += (cNode->excess[CREST_LAYER_INTERFLOW] / (stepHours * 3600.0f));
+  *interFlow += (cNode->excess[CRESTPHYS_LAYER_INTERFLOW] / (stepHours * 3600.0f));
+
+  *baseFlow+= (cNode->excess[CRESTPHYS_LAYER_BASEFLOW] / (stepHours * 3600.0f));
 
   // Calculate Discharge as the sum of the leaks
   //*discharge = (overlandLeak + interflowLeak) * node->area / 3.6;
 }
 
-void CRESTModel::InitializeParameters(
+void CRESTPHYSModel::InitializeParameters(
     std::map<GaugeConfigSection *, float *> *paramSettings,
     std::vector<FloatGrid *> *paramGrids) {
 
@@ -282,7 +296,7 @@ void CRESTModel::InitializeParameters(
   size_t unused = 0;
   for (size_t i = 0; i < numNodes; i++) {
     GridNode *node = &nodes->at(i);
-    CRESTGridNode *cNode = &(crestNodes[i]);
+    CRESTPHYSGridNode *cNode = &(crestphysNodes[i]);
     if (!node->gauge) {
       unused++;
       continue;

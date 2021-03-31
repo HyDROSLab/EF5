@@ -48,6 +48,14 @@ const char *CREST[] = {
 #define ADDPARAMCREST(a, b)
 };
 
+const char *CRESTPHYS[] = {
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b) a,
+#include "Models.tbl"
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b)
+};
+
 const char *HYMOD[] = {
 #undef ADDPARAMHYMOD
 #define ADDPARAMHYMOD(a, b) a,
@@ -69,6 +77,7 @@ const char *SAC[] = {
 const char **modelParamStrings[] = {
     paramStrings::HP,
     paramStrings::CREST,
+    paramStrings::CRESTPHYS,
     paramStrings::HYMOD,
     paramStrings::SAC,
 
@@ -93,6 +102,14 @@ const char *CREST[] = {
 #define ADDPARAMCREST(a, b)
 };
 
+const char *CRESTPHYS[] = {
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b) a "_grid",
+#include "Models.tbl"
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b)
+};
+
 const char *HYMOD[] = {
 #undef ADDPARAMHYMOD
 #define ADDPARAMHYMOD(a, b) a "_grid",
@@ -111,7 +128,9 @@ const char *SAC[] = {
 } // namespace paramGridStrings
 
 const char **modelParamGridStrings[] = {
-    paramGridStrings::HP, paramGridStrings::CREST, paramGridStrings::HYMOD,
+    paramGridStrings::HP, paramGridStrings::CREST,
+    paramGridStrings::CRESTPHYS,
+    paramGridStrings::HYMOD,
     paramGridStrings::SAC};
 
 const int numModelParams[] = {

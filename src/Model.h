@@ -3,6 +3,7 @@
 
 #define ADDMODEL(a, b)
 #define ADDPARAMCREST(a, b)
+#define ADDPARAMCRESTPHYS(a, b)
 #define ADDPARAMHYMOD(a, b)
 #define ADDPARAMSAC(a, b)
 #define ADDPARAMHP(a, b)
@@ -45,6 +46,16 @@ enum CREST_PARAMS {
 #define ADDPARAMCREST(a, b)
 
   PARAM_CREST_QTY,
+};
+
+enum CRESTPHYS_PARAMS {
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b) PARAM_CRESTPHYS_##b,
+#include "Models.tbl"
+#undef ADDPARAMCRESTPHYS
+#define ADDPARAMCRESTPHYS(a, b)
+
+  PARAM_CRESTPHYS_QTY,
 };
 
 enum HYMOD_PARAMS {
