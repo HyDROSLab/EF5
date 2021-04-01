@@ -36,7 +36,9 @@ public:
   bool WaterBalance(float stepHours, std::vector<float> *precip,
                     std::vector<float> *pet, std::vector<float> *fastFlow,
                     std::vector<float> *slowFlow,
-                    std::vector<float> *soilMoisture);
+                    std::vector<float> *baseFlow,
+                    std::vector<float> *soilMoisture,
+                    std::vector<float> *groundwater);
   bool IsLumped() { return true; }
   const char *GetName() { return "hymod"; }
 

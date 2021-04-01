@@ -35,16 +35,19 @@ public:
                        std::vector<FloatGrid *> *paramGrids);
   void InitializeStates(TimeVar *beginTime, char *statePath,
                         std::vector<float> *fastFlow,
-                        std::vector<float> *slowFlow);
+                        std::vector<float> *baseFlow,
+                        std::vector<float> *interFlow);
   void SaveStates(TimeVar *currentTime, char *statePath,
                   GridWriterFull *gridWriter);
   bool Route(float stepHours, std::vector<float> *fastFlow,
-             std::vector<float> *slowFlow, std::vector<float> *discharge);
+             std::vector<float> *interFlow,
+             std::vector<float> *baseFlow,
+              std::vector<float> *discharge);
   float GetMaxSpeed() { return maxSpeed; }
 
 private:
   void RouteInt(GridNode *node, LRGridNode *cNode, float fastFlow,
-                float slowFlow);
+                float interFlow, float baseFlow);
   void
   InitializeParameters(std::map<GaugeConfigSection *, float *> *paramSettings,
                        std::vector<FloatGrid *> *paramGrids);

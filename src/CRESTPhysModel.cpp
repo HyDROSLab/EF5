@@ -128,7 +128,9 @@ bool CRESTPHYSModel::WaterBalance(float stepHours,
                     &(baseFlow->at(i)));
     soilMoisture->at(i) =
         cNode->states[STATE_CRESTPHYS_SM] * 100.0 / cNode->params[PARAM_CREST_WM];
+    groundwater ->at(i) = cNode->states[STATE_CRESTPHYS_GW];
   }
+    
 
   return true;
 }
@@ -139,7 +141,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   double precip = precipIn * stepHours; // precipIn is mm/hr, precip is mm
   double pet = petIn * stepHours;       // petIn in mm/hr, pet is mm
   double R = 0.0, Wo = 0.0;
-  double baseflowExcess=0.0;
+  float baseflowExcess=0.0;
 
   double adjPET = pet * cNode->params[PARAM_CRESTPHYS_KE];
   double temX = 0.0;
@@ -287,8 +289,8 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   // Base flow we apply a fill-spill bucket
   if (cNode->states[STATE_CRESTPHYS_GW]>cNode->params[PARAM_CRESTPHYS_HMAXAQ]) {
     // spill
-    baseflowExcess= cNode->states[STATE_CRESTPHYS_GW]-cNode->excess[PARAM_CRESTPHYS_HMAXAQ];
-    cNode->states[STATE_CRESTPHYS_GW]=cNode->excess[PARAM_CRESTPHYS_HMAXAQ];
+    baseflowExcess= cNode->states[STATE_CRESTPHYS_GW]-cNode->params[PARAM_CRESTPHYS_HMAXAQ];
+    cNode->states[STATE_CRESTPHYS_GW]=cNode->params[PARAM_CRESTPHYS_HMAXAQ];
   }
   else{
     baseflowExcess=0.0;
@@ -327,7 +329,7 @@ void CRESTPHYSModel::InitializeParameters(
 
     // Some of the parameters are special, deal with that here
     if (!paramGrids->at(PARAM_CRESTPHYS_IM)) {
-      cNode->params[PARAM_CREST_IM] /= 100.0;
+      cNode->params[PARAM_CRESTPHYS_IM] /= 100.0;
     }
 
     // Deal with the distributed parameters here
@@ -393,5 +395,18 @@ void CRESTPHYSModel::InitializeParameters(
       // cNode->params[PARAM_CREST_B]);
       cNode->params[PARAM_CRESTPHYS_FC] = 1.0;
     }
+
+    if (cNode->params[PARAM_CRESTPHYS_HMAXAQ<0.0]){
+      cNode->params[PARAM_CRESTPHYS_HMAXAQ]=0.1;
+    }
+
+    if (cNode->params[PARAM_CRESTPHYS_GWE<0.0]){
+      cNode->params[PARAM_CRESTPHYS_GWE]=0;
+    }
+
+    if (cNode->params[PARAM_CRESTPHYS_GWC<0.0]){
+      cNode->params[PARAM_CRESTPHYS_GWC]=0;
+    }
+
   }
 }

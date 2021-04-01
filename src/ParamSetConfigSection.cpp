@@ -77,6 +77,7 @@ CONFIG_SEC_RET ParamSetConfigSection::ProcessKeyValue(char *name, char *value) {
     for (int i = 0; i < numParams; i++) {
       // printf("%i %i %s %s\n", model, i, modelParamStrings[model][i], name);
       if (strcasecmp(name, modelParamStrings[model][i]) == 0) {
+        INFO_LOGF("readed parameter \"%s\" !", name);
 
         if (currentParamsSet[i]) {
           ERROR_LOGF("Duplicate parameter \"%s\" in parameter set!", name);
@@ -89,7 +90,6 @@ CONFIG_SEC_RET ParamSetConfigSection::ProcessKeyValue(char *name, char *value) {
         return VALID_RESULT;
       }
     }
-
     // We got here so we must not know what this parameter is!
     ERROR_LOGF("Unknown parameter name \"%s\".", name);
     return INVALID_RESULT;

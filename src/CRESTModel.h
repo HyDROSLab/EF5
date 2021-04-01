@@ -37,14 +37,16 @@ public:
   bool WaterBalance(float stepHours, std::vector<float> *precip,
                     std::vector<float> *pet, std::vector<float> *fastFlow,
                     std::vector<float> *slowFlow,
-                    std::vector<float> *soilMoisture);
+                    std::vector<float> *baseFlow,
+                    std::vector<float> *soilMoisture,
+                    std::vector<float> *groundwater);
   bool IsLumped() { return false; }
   const char *GetName() { return "crest"; }
 
 private:
   void WaterBalanceInt(GridNode *node, CRESTGridNode *cNode, float stepHours,
                        float precipIn, float petIn, float *fastFlow,
-                       float *slowFlow);
+                       float *slowFlow, float *baseFlow);
   void
   InitializeParameters(std::map<GaugeConfigSection *, float *> *paramSettings,
                        std::vector<FloatGrid *> *paramGrids);

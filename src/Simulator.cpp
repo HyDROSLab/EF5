@@ -6,6 +6,7 @@
 #endif
 #include "BasicGrids.h"
 #include "CRESTModel.h"
+#include "CRESTPhysModel.h"
 #include "GridWriterFull.h"
 #include "GriddedOutput.h"
 #include "HPModel.h"
@@ -214,6 +215,9 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
   switch (task->GetModel()) {
   case MODEL_CREST:
     wbModel = new CRESTModel();
+    break;
+  case MODEL_CRESTPHYS:
+    wbModel = new CRESTPHYSModel();
     break;
   case MODEL_HYMOD:
     wbModel = new HyMOD();
@@ -541,6 +545,9 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
     case MODEL_CREST:
       caliWBModels[i] = new CRESTModel();
       break;
+    case MODEL_CRESTPHYS:
+      caliWBModels[i] = new CRESTPHYSModel();
+      break;      
     case MODEL_HYMOD:
       caliWBModels[i] = new HyMOD();
       break;
@@ -1273,7 +1280,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   if (useStates) {
     wbModel->InitializeStates(&currentTime, statePath);
     if (rModel) {
-      rModel->InitializeStates(&currentTime, statePath, &currentFF, &currentSF);
+      rModel->InitializeStates(&currentTime, statePath, &currentFF, &currentSF, &currentBF);
     }
     if (sModel) {
       sModel->InitializeStates(&currentTime, statePath);
@@ -1282,6 +1289,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     for (size_t i = 0; i < currentFF.size(); i++) {
       currentFF[i] = 0.0;
       currentSF[i] = 0.0;
+      currentBF[i]= 0.0;
       currentSWE[i] = 0.0;
     }
   }
@@ -1301,12 +1309,14 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   // Hard coded RP counting
   std::vector<float> count2, rpGrid, rpMaxGrid, maxGrid;
   std::vector<float> SM;
+  std::vector<float> GW;
   std::vector<float> dailyMaxQ, dailyMinSM, dailyMaxQHour;
   count2.resize(currentFF.size());
   rpGrid.resize(currentFF.size());
   rpMaxGrid.resize(currentFF.size());
   maxGrid.resize(currentFF.size());
   SM.resize(currentFF.size());
+  GW.resize(currentFF.size());
 
   for (size_t i = 0; i < currentFF.size(); i++) {
     count2[i] = 0.0;
@@ -1364,11 +1374,11 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     // Integrate the models for this timestep
     if (!preloadedForcings) {
       wbModel->WaterBalance(stepHoursReal, currentPrecip, &currentPETSimu,
-                            &currentFF, &currentSF, &SM);
+                            &currentFF, &currentSF, &currentBF, &SM, &GW);
     } else {
       wbModel->WaterBalance(stepHoursReal, &(currentPrecipCali[tsIndex]),
-                            &(currentPETCali[tsIndex]), &currentFF, &currentSF,
-                            &SM);
+                            &(currentPETCali[tsIndex]), &currentFF, &currentSF, &currentBF,
+                            &SM, &GW);
     }
 
     // 2019-04: output gridded surface runoff ---------------------------------
@@ -1393,7 +1403,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       double beginTimeR = omp_get_wtime();
 #endif
 #endif
-      rModel->Route(stepHoursReal, &currentFF, &currentSF, &currentQ);
+      rModel->Route(stepHoursReal, &currentFF, &currentSF, &currentBF, &currentQ);
 #if _OPENMP
 #ifndef _WIN32
       double endTimeR = omp_get_wtime();
@@ -1508,6 +1518,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
                 currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &SM, buffer, false);
       }
+      
       if (outputRP && ((griddedOutputs & OG_QRP) == OG_QRP)) {
         sprintf(buffer, "%s/rp.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());
@@ -1731,6 +1742,7 @@ void Simulator::SimulateLumped() {
   size_t tsIndex = 0;
 
   std::vector<float> SM;
+  std::vector<float> GW;
   SM.resize(currentFF.size());
 
   // Initialize our model
@@ -1774,12 +1786,12 @@ void Simulator::SimulateLumped() {
       gaugeMap.GaugeAverage(&nodes, &currentPrecipSimu, &avgPrecip);
       gaugeMap.GaugeAverage(&nodes, &currentPETSimu, &avgPET);
 
-      wbModel->WaterBalance(timeStepHours, &avgPrecip, &avgPET, &currentFF,
-                            &currentSF, &SM);
+      wbModel->WaterBalance(timeStepHours, &avgPrecip, &avgPET, &currentFF, &currentBF,
+                            &currentSF, &SM, &GW);
     } else {
       wbModel->WaterBalance(timeStepHours, &(currentPrecipCali[tsIndex]),
-                            &(currentPETCali[tsIndex]), &currentFF, &currentSF,
-                            &SM);
+                            &(currentPETCali[tsIndex]), &currentFF, &currentSF, &currentBF,
+                            &SM, &GW);
     }
     // We only output after the warmup period is over
     if (warmEndTime <= currentTime) {
@@ -2066,8 +2078,8 @@ float Simulator::SimulateForCali(float *testParams) {
   WaterBalanceModel *runModel;
   RoutingModel *runRoutingModel;
   SnowModel *runSnowModel;
-  std::vector<float> currentFFCali, currentSFCali, currentQCali, simQCali,
-      SMCali, currentSWECali, currentPrecipSnow;
+  std::vector<float> currentFFCali, currentSFCali, currentBFCali, currentQCali, simQCali,
+      SMCali, GWCali, currentSWECali, currentPrecipSnow;
   TimeVar currentTimeCali;
   std::map<GaugeConfigSection *, float *> *currentWBParamSettings;
   std::map<GaugeConfigSection *, float *> *currentRParamSettings;
@@ -2119,6 +2131,7 @@ float Simulator::SimulateForCali(float *testParams) {
 
   currentFFCali.resize(currentFF.size());
   currentSFCali.resize(currentFF.size());
+  currentBFCali.resize(currentFF.size());
   currentQCali.resize(currentFF.size());
   currentSWECali.resize(currentFF.size());
   currentPrecipSnow.resize(currentFF.size());
@@ -2150,10 +2163,10 @@ float Simulator::SimulateForCali(float *testParams) {
      gaugeMap.GaugeAverage(&nodes, petVec, &avgPET);
      printf("%f %f\n", precipVec->at(300), petVec->at(300));
      }*/
-    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali,
-                           &currentSFCali, &SMCali);
+    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentBFCali,
+                           &currentSFCali, &SMCali, &GWCali);
 
-    runRoutingModel->Route(timeStepHours, &currentFFCali, &currentSFCali,
+    runRoutingModel->Route(timeStepHours, &currentFFCali, &currentSFCali, &currentBFCali,
                            &currentQCali);
 
     if (warmEndTime <= currentTimeCali) {
@@ -2181,7 +2194,7 @@ float Simulator::SimulateForCali(float *testParams) {
 float *Simulator::SimulateForCaliTS(float *testParams) {
 
   WaterBalanceModel *runModel;
-  std::vector<float> currentFFCali, currentSFCali, SMCali;
+  std::vector<float> currentFFCali, currentSFCali, currentBFCali, SMCali, GWCali;
   float *simQCali;
   TimeVar currentTimeCali;
   std::map<GaugeConfigSection *, float *> *currentParamSettings;
@@ -2221,8 +2234,8 @@ float *Simulator::SimulateForCaliTS(float *testParams) {
     std::vector<float> *precipVec = &(currentPrecipCali[tsIndex]);
     std::vector<float> *petVec = &(currentPETCali[tsIndex]);
 
-    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali,
-                           &currentSFCali, &SMCali);
+    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentBFCali,
+                           &currentSFCali, &SMCali, &GWCali);
     if (warmEndTime <= currentTimeCali) {
       if (!runModel->IsLumped()) {
         simQCali[tsIndexWarm] = currentFFCali[caliGauge->GetGridNodeIndex()];

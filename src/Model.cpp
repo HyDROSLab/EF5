@@ -128,7 +128,8 @@ const char *SAC[] = {
 } // namespace paramGridStrings
 
 const char **modelParamGridStrings[] = {
-    paramGridStrings::HP, paramGridStrings::CREST,
+    paramGridStrings::HP,
+     paramGridStrings::CREST,
     paramGridStrings::CRESTPHYS,
     paramGridStrings::HYMOD,
     paramGridStrings::SAC};

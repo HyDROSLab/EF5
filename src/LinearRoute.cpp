@@ -39,12 +39,14 @@ bool LRRoute::InitializeModel(
 
 void LRRoute::InitializeStates(TimeVar *beginTime, char *statePath,
                                std::vector<float> *fastFlow,
-                               std::vector<float> *slowFlow) {}
+                               std::vector<float> *interFlow,
+                               std::vector<float> *baseFlow) {}
 void LRRoute::SaveStates(TimeVar *currentTime, char *statePath,
                          GridWriterFull *gridWriter) {}
 
 bool LRRoute::Route(float stepHours, std::vector<float> *fastFlow,
-                    std::vector<float> *slowFlow,
+                    std::vector<float> *interFlow,
+                    std::vector<float> *baseFlow,
                     std::vector<float> *discharge) {
 
   if (!initialized) {
@@ -56,14 +58,14 @@ bool LRRoute::Route(float stepHours, std::vector<float> *fastFlow,
 
   for (size_t i = 0; i < numNodes; i++) {
     LRGridNode *cNode = &(lrNodes[i]);
-    RouteInt(&(nodes->at(i)), cNode, fastFlow->at(i), slowFlow->at(i));
+    RouteInt(&(nodes->at(i)), cNode, fastFlow->at(i), interFlow->at(i), baseFlow->at(i));
   }
 
   for (size_t i = 0; i < numNodes; i++) {
     LRGridNode *cNode = &(lrNodes[i]);
     fastFlow->at(i) = cNode->incomingWater[LR_LAYER_OVERLAND];
     cNode->incomingWater[LR_LAYER_OVERLAND] = 0.0;
-    slowFlow->at(i) = cNode->incomingWater[LR_LAYER_INTERFLOW];
+    interFlow->at(i) = cNode->incomingWater[LR_LAYER_INTERFLOW];
     cNode->incomingWater[LR_LAYER_INTERFLOW] = 0.0;
   }
 
@@ -73,7 +75,7 @@ bool LRRoute::Route(float stepHours, std::vector<float> *fastFlow,
 }
 
 void LRRoute::RouteInt(GridNode *node, LRGridNode *cNode, float fastFlow,
-                       float slowFlow) {
+                       float interFlow, float baseFlow) {
 
   if (!node->channelGridCell) {
     cNode->reservoirs[LR_LAYER_OVERLAND] += fastFlow;
@@ -91,7 +93,7 @@ void LRRoute::RouteInt(GridNode *node, LRGridNode *cNode, float fastFlow,
   }
 
   // Add Interflow Excess Water to Reservoir
-  cNode->reservoirs[LR_LAYER_INTERFLOW] += slowFlow;
+  cNode->reservoirs[LR_LAYER_INTERFLOW] += interFlow;
   double interflowLeak =
       cNode->reservoirs[LR_LAYER_INTERFLOW] * cNode->params[PARAM_LINEAR_LEAKI];
   cNode->reservoirs[LR_LAYER_INTERFLOW] -= interflowLeak;

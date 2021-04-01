@@ -86,7 +86,7 @@ private:
       beginLRTime;
   DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile,
       currentTimeText, currentTimeTextOutput;
-  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE,
+  std::vector<float> currentFF, currentSF, currentBF, currentQ, avgPrecip, avgPET, avgSWE,
       currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth;
   std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow,
       paramGridsInundation;

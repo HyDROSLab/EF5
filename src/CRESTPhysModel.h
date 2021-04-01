@@ -3,7 +3,9 @@
 
 #include "ModelBase.h"
 
-enum STATES_CRESTPHYS { STATE_CRESTPHYS_SM, STATE_CRESTPHYS_GW, STATE_CRESTPHYS_QTY };
+enum STATES_CRESTPHYS { STATE_CRESTPHYS_SM,
+                        STATE_CRESTPHYS_GW,
+                        STATE_CRESTPHYS_QTY };
 
 enum CRESTPHYS_LAYER {
   CRESTPHYS_LAYER_OVERLAND,
@@ -30,8 +32,7 @@ public:
   CRESTPHYSModel();
   ~CRESTPHYSModel();
   bool InitializeModel(std::vector<GridNode> *newNodes,
-                       std::map<GaugeConfigSection *,
-                      float *> *paramSettings,
+                       std::map<GaugeConfigSection *, float *> *paramSettings,
                        std::vector<FloatGrid *> *paramGrids);
   void InitializeStates(TimeVar *beginTime, char *statePath);
   void SaveStates(TimeVar *currentTime, char *statePath,
@@ -44,6 +45,7 @@ public:
                     std::vector<float> *baseFlow,
                     std::vector<float> *soilMoisture,
                     std::vector<float> *groundwater);
+
   bool IsLumped() { return false; }
   const char *GetName() { return "crestphys"; }
 
