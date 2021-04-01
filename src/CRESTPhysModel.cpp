@@ -139,6 +139,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   double precip = precipIn * stepHours; // precipIn is mm/hr, precip is mm
   double pet = petIn * stepHours;       // petIn in mm/hr, pet is mm
   double R = 0.0, Wo = 0.0;
+  double baseflowExcess=0.0;
 
   double adjPET = pet * cNode->params[PARAM_CRESTPHYS_KE];
   double temX = 0.0;
@@ -150,7 +151,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   }*/
 
   // Base flow continuity
-  cNode->states[STATE_CRESTPHYS_GW]+= *baseFlow;
+  // cNode->states[STATE_CRESTPHYS_GW]+= *baseFlow;
 
   // We have more water coming in than leaving via ET.
   if (precip > adjPET) {
@@ -233,16 +234,18 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
             stepHours); // Calculate how much water can infiltrate
 
     if (R <= temX) {
-      cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = R;
+      cNode->excess[CRESTPHYS_LAYER_BASEFLOW] = R;
     } else {
-      cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = temX;
+      cNode->excess[CRESTPHYS_LAYER_BASEFLOW] = temX;
     }
-    cNode->excess[CRESTPHYS_LAYER_OVERLAND] =
-        R - cNode->excess[CRESTPHYS_LAYER_INTERFLOW] + precipImperv;
+    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] =
+        R - cNode->excess[CRESTPHYS_LAYER_BASEFLOW];
+    
+    cNode->excess[CRESTPHYS_LAYER_OVERLAND]= precipImperv;
 
     cNode->actET = adjPET;
 
-    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] +=
+    cNode->excess[CRESTPHYS_LAYER_OVERLAND] +=
         interflowExcess; // Extra interflow that got routed.
   } else {               // All the incoming precip goes straight to ET
     cNode->excess[CRESTPHYS_LAYER_OVERLAND] = 0.0;
@@ -255,7 +258,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
     if (interflowExcess < 0.0) {
       interflowExcess = 0.0;
     }
-    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = interflowExcess;
+    cNode->excess[CRESTPHYS_LAYER_OVERLAND] = interflowExcess;
 
     if (cNode->states[STATE_CRESTPHYS_SM] > cNode->params[PARAM_CRESTPHYS_WM]) {
       cNode->states[STATE_CRESTPHYS_SM] = cNode->params[PARAM_CRESTPHYS_WM];
@@ -274,14 +277,26 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   }
 
   cNode->states[STATE_CRESTPHYS_SM] = Wo;
-
+  cNode->states[STATE_CRESTPHYS_GW] += cNode->excess[CRESTPHYS_LAYER_BASEFLOW];
   // Add Overland Excess Water to fastFlow
   *fastFlow += (cNode->excess[CRESTPHYS_LAYER_OVERLAND] / (stepHours * 3600.0f));
 
   // Add Interflow Excess Water to slowFlow
   *interFlow += (cNode->excess[CRESTPHYS_LAYER_INTERFLOW] / (stepHours * 3600.0f));
 
-  *baseFlow+= (cNode->excess[CRESTPHYS_LAYER_BASEFLOW] / (stepHours * 3600.0f));
+  // Base flow we apply a fill-spill bucket
+  if (cNode->states[STATE_CRESTPHYS_GW]>cNode->params[PARAM_CRESTPHYS_HMAXAQ]) {
+    // spill
+    baseflowExcess= cNode->states[STATE_CRESTPHYS_GW]-cNode->excess[PARAM_CRESTPHYS_HMAXAQ];
+    cNode->states[STATE_CRESTPHYS_GW]=cNode->excess[PARAM_CRESTPHYS_HMAXAQ];
+  }
+  else{
+    baseflowExcess=0.0;
+  }
+  double baseflowExp= cNode->params[PARAM_CRESTPHYS_GWC]*exp(cNode->params[PARAM_CRESTPHYS_GWE]*
+                        cNode->states[STATE_CRESTPHYS_GW]/cNode->params[PARAM_CRESTPHYS_HMAXAQ]-1);
+
+  *baseFlow += ((baseflowExcess+baseflowExp) / (stepHours * 3600.0f));
 
   // Calculate Discharge as the sum of the leaks
   //*discharge = (overlandLeak + interflowLeak) * node->area / 3.6;
@@ -308,16 +323,16 @@ void CRESTPHYSModel::InitializeParameters(
     }*/
     // Copy all of the parameters over
     memcpy(cNode->params, (*paramSettings)[node->gauge],
-           sizeof(float) * PARAM_CREST_QTY);
+           sizeof(float) * PARAM_CRESTPHYS_QTY);
 
     // Some of the parameters are special, deal with that here
-    if (!paramGrids->at(PARAM_CREST_IM)) {
+    if (!paramGrids->at(PARAM_CRESTPHYS_IM)) {
       cNode->params[PARAM_CREST_IM] /= 100.0;
     }
 
     // Deal with the distributed parameters here
     GridLoc pt;
-    for (size_t paramI = 0; paramI < PARAM_CREST_QTY; paramI++) {
+    for (size_t paramI = 0; paramI < PARAM_CRESTPHYS_QTY; paramI++) {
       FloatGrid *grid = paramGrids->at(paramI);
       if (grid && g_DEM->IsSpatialMatch(grid)) {
         if (grid->data[node->y][node->x] == 0) {
@@ -335,48 +350,48 @@ void CRESTPHYSModel::InitializeParameters(
       }
     }
 
-    if (!paramGrids->at(PARAM_CREST_IWU)) {
-      cNode->states[STATE_CREST_SM] = cNode->params[PARAM_CREST_IWU] *
-                                      cNode->params[PARAM_CREST_WM] / 100.0;
+    if (!paramGrids->at(PARAM_CRESTPHYS_IWU)) {
+      cNode->states[STATE_CRESTPHYS_SM] = cNode->params[PARAM_CRESTPHYS_IWU] *
+                                      cNode->params[PARAM_CRESTPHYS_WM] / 100.0;
     }
 
-    if (cNode->params[PARAM_CREST_WM] < 0.0) {
-      cNode->params[PARAM_CREST_WM] = 100.0;
+    if (cNode->params[PARAM_CRESTPHYS_WM] < 0.0) {
+      cNode->params[PARAM_CRESTPHYS_WM] = 100.0;
     }
 
-    if (cNode->states[STATE_CREST_SM] < 0.0) {
+    if (cNode->states[STATE_CRESTPHYS_SM] < 0.0) {
       printf("Node Soil Moisture(%f) is less than 0, setting to 0.\n",
-             cNode->states[STATE_CREST_SM]);
-      cNode->states[STATE_CREST_SM] = 0.0;
-    } else if (cNode->states[STATE_CREST_SM] > cNode->params[PARAM_CREST_WM]) {
+             cNode->states[STATE_CRESTPHYS_SM]);
+      cNode->states[STATE_CRESTPHYS_SM] = 0.0;
+    } else if (cNode->states[STATE_CRESTPHYS_SM] > cNode->params[PARAM_CREST_WM]) {
       printf("Node Soil Moisture(%f) is greater than WM, setting to %f.\n",
-             cNode->states[STATE_CREST_SM], cNode->params[PARAM_CREST_WM]);
+             cNode->states[STATE_CRESTPHYS_SM], cNode->params[PARAM_CREST_WM]);
     }
 
-    if (cNode->params[PARAM_CREST_IM] < 0.0) {
+    if (cNode->params[PARAM_CRESTPHYS_IM] < 0.0) {
       // printf("Node Impervious Area(%f) is less than 0, setting to 0.\n",
       // cNode->params[PARAM_CREST_IM]);
-      cNode->params[PARAM_CREST_IM] = 0.0;
-    } else if (cNode->params[PARAM_CREST_IM] > 1.0) {
+      cNode->params[PARAM_CRESTPHYS_IM] = 0.0;
+    } else if (cNode->params[PARAM_CRESTPHYS_IM] > 1.0) {
       // printf("Node Impervious Area(%f) is greater than 1, setting to 1.\n",
       // cNode->params[PARAM_CREST_IM]);
-      cNode->params[PARAM_CREST_IM] = 1.0;
+      cNode->params[PARAM_CRESTPHYS_IM] = 1.0;
     }
 
-    if (cNode->params[PARAM_CREST_B] < 0.0) {
+    if (cNode->params[PARAM_CRESTPHYS_B] < 0.0) {
       // printf("Node B (%f) is less than 0, setting to 0.\n",
       // cNode->params[PARAM_CREST_B]);
-      cNode->params[PARAM_CREST_B] = 1.0;
-    } else if (cNode->params[PARAM_CREST_B] != cNode->params[PARAM_CREST_B]) {
+      cNode->params[PARAM_CRESTPHYS_B] = 1.0;
+    } else if (cNode->params[PARAM_CRESTPHYS_B] != cNode->params[PARAM_CRESTPHYS_B]) {
       // printf("Node B (%f) NaN, setting to %f.\n",
       // cNode->params[PARAM_CREST_B], 0.0);
-      cNode->params[PARAM_CREST_B] = 0.0;
+      cNode->params[PARAM_CRESTPHYS_B] = 0.0;
     }
 
-    if (cNode->params[PARAM_CREST_FC] < 0.0) {
+    if (cNode->params[PARAM_CRESTPHYS_FC] < 0.0) {
       // printf("Node B (%f) is less than 0, setting to 0.\n",
       // cNode->params[PARAM_CREST_B]);
-      cNode->params[PARAM_CREST_FC] = 1.0;
+      cNode->params[PARAM_CRESTPHYS_FC] = 1.0;
     }
   }
 }
