@@ -213,6 +213,9 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
 
   if (!cNode->channelGridCell) {
 
+    // overland routing
+    // printf("%f\n",baseFlow);
+
     float beta = 0.6;
     float alpha = cNode->params[PARAM_KINEMATIC_ALPHA0];
 
@@ -289,10 +292,11 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
       printf(" 0 got %f ",
       cNode->routeCNode[0][KW_LAYER_INTERFLOW]->incomingWater[KW_LAYER_INTERFLOW]);
       }*/
-      cNode->routeCNode[0][KW_LAYER_BASEFLOW]
-          ->incomingWater[KW_LAYER_BASEFLOW] += leakAmount;
+      // printf("0 got here... incoming base flow: %f, leakAmount: %f\n",cNode->routeCNode[0][KW_LAYER_INTERFLOW]->incomingWater[KW_LAYER_INTERFLOW], leakAmount);
+      cNode->incomingWater[KW_LAYER_BASEFLOW] += leakAmount;
       //*res += leakAmount; // Make this an atomic add for parallelization
     }
+
 
     if (cNode->routeCNode[1][KW_LAYER_INTERFLOW]) {
       double interflowLeak1 =
@@ -300,10 +304,10 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
           node->area / cNode->routeNode[1][KW_LAYER_INTERFLOW]->area;
       double leakAmount = interflowLeak1;
       // printf(" 1 got %f ", leakAmount);
-      double *res = &(cNode->routeCNode[1][KW_LAYER_BASEFLOW]
-                          ->incomingWater[KW_LAYER_BASEFLOW]);
+      double *res = &(cNode->incomingWater[KW_LAYER_BASEFLOW]);
       *res += leakAmount; // Make this an atomic add for parallelization
     }
+
 
   } else {
 

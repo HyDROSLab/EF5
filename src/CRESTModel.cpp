@@ -10,6 +10,7 @@
 
 static const char *stateStrings[] = {
     "SM",
+    "GW",
 };
 
 CRESTModel::CRESTModel() {}
@@ -114,6 +115,7 @@ bool CRESTModel::WaterBalance(float stepHours,
 #if _OPENMP
   //#pragma omp parallel for
 #endif
+
   for (size_t i = 0; i < numNodes; i++) {
     GridNode *node = &nodes->at(i);
     CRESTGridNode *cNode = &(crestNodes[i]);

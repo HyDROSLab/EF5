@@ -195,15 +195,18 @@ CONFIG_SEC_RET TaskConfigSection::ProcessKeyValue(char *name, char *value) {
                                                     "CLIP_GAUGE, BASIN_AVG");
     return INVALID_RESULT;
   } else if (!strcasecmp(name, "model")) {
+
     for (int i = 0; i < MODEL_QTY; i++) {
+
       if (!strcasecmp(value, modelStrings[i])) {
+        
         modelSet = true;
         model = (MODELS)i;
         return VALID_RESULT;
       }
     }
     ERROR_LOGF("Unknown water balance model option \"%s\"!", value);
-    INFO_LOGF("Valid water balance options are \"%s\"", "CREST, SAC, HP");
+    INFO_LOGF("Valid water balance options are \"%s\"", "CREST, CRESTPHYS, SAC, HP");
     return INVALID_RESULT;
   } else if (!strcasecmp(name, "routing")) {
     for (int i = 0; i < ROUTE_QTY; i++) {

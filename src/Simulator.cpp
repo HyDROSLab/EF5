@@ -210,7 +210,6 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
               "(Invalid gauge location?)");
     return false;
   }
-
   // Create the appropriate model
   switch (task->GetModel()) {
   case MODEL_CREST:
@@ -320,6 +319,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
   avgSM.resize(gauges->size());
   avgFF.resize(gauges->size());
   avgSF.resize(gauges->size());
+  avgBF.resize(gauges->size());
 
   // Initialize forcing vectors & discharge storage vector
   currentPrecipSimu.resize(nodes.size());
@@ -347,6 +347,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
     }
     currentFF.resize(nodes.size());
     currentSF.resize(nodes.size());
+    currentBF.resize(nodes.size());
     currentQ.resize(nodes.size());
     currentSWE.resize(nodes.size());
     currentDepth.resize(nodes.size());
@@ -354,6 +355,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
     outputRP = false;
     currentFF.resize(lumpedNodes.size());
     currentSF.resize(lumpedNodes.size());
+    currentBF.resize(lumpedNodes.size());
     currentQ.resize(lumpedNodes.size());
     currentSWE.resize(lumpedNodes.size());
   }
@@ -372,7 +374,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
         fprintf(gaugeOutputs[i], "%s",
                 "Time,Discharge(m^3 s^-1),Observed(m^3 s^-1),Precip(mm "
                 "h^-1),PET(mm h^-1),SM(%),Fast Flow(mm*1000),Slow "
-                "Flow(mm*1000)");
+                "Flow(mm*1000),Base Flow(mm*1000)");
         if (sModel) {
           fprintf(gaugeOutputs[i], "%s", ",Temperature (C),SWE(mm)");
         }
@@ -507,11 +509,13 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
   if (!wbModel->IsLumped()) {
     currentFF.resize(nodes.size());
     currentSF.resize(nodes.size());
+    currentBF.resize(nodes.size());
     currentQ.resize(nodes.size());
     currentSWE.resize(nodes.size());
   } else {
     currentFF.resize(lumpedNodes.size());
     currentSF.resize(lumpedNodes.size());
+    currentBF.resize(lumpedNodes.size());
     currentQ.resize(lumpedNodes.size());
     currentSWE.resize(lumpedNodes.size());
   }
@@ -967,15 +971,15 @@ void Simulator::SaveTSOutput() {
     GaugeConfigSection *gauge = gauges->at(i);
     if (gaugeOutputs[i]) {
       if (std::isfinite(currentQ[gauge->GetGridNodeIndex()])) {
-        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(), currentQ[gauge->GetGridNodeIndex()],
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       } else {
-        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(),
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       }
       if (sModel) {
         fprintf(gaugeOutputs[i], ",%.2f,%.2f", avgT[i], avgSWE[i]);
@@ -1257,7 +1261,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     qpfAccum.resize(nodes.size());
     savePrecip = true;
   }
-
+  // printf("Got here before initializing water balance models...");
   // Initialize our models
   // NORMAL_LOGF("%s\n", "Got here!4");
   wbModel->InitializeModel(&nodes, &fullParamSettings, &paramGrids);
@@ -1293,7 +1297,6 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       currentSWE[i] = 0.0;
     }
   }
-
   // Set up stuff for peak tracking here, if needed
   if (trackPeaks) {
     numYears = GetNumSimulatedYears();
@@ -1326,7 +1329,9 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     currentFF[i] = 0.0;
     currentSF[i] = 0.0;
     currentQ[i] = 0.0;
+    currentBF[i]=0.0;
   }
+  // printf("After initialization...\n");
 
 #if _OPENMP
   double timeTotal = 0.0, timeCount = 0.0;
@@ -1337,6 +1342,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   // Here we load the input forcings & actually run the model
   for (currentTime.Increment(timeStep); currentTime <= endTime;
        currentTime.Increment(timeStep)) {
+
 #if _OPENMP
 #ifndef _WIN32
     double beginTime = omp_get_wtime();
@@ -1370,7 +1376,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         currentPrecip = &currentPrecipSnow;
       }
     }
-
+    // printf("Got here before executing water balance...\n"); done
     // Integrate the models for this timestep
     if (!preloadedForcings) {
       wbModel->WaterBalance(stepHoursReal, currentPrecip, &currentPETSimu,
@@ -1392,7 +1398,9 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     if (outputTS) {
       gaugeMap.GaugeAverage(&nodes, &currentFF, &avgFF);
       gaugeMap.GaugeAverage(&nodes, &currentSF, &avgSF);
+      gaugeMap.GaugeAverage(&nodes, &currentBF, &avgBF);
     }
+
 
     if (rModel && wantsDA) {
       AssimilateData();
@@ -1404,6 +1412,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
 #endif
 #endif
       rModel->Route(stepHoursReal, &currentFF, &currentSF, &currentBF, &currentQ);
+      // printf("After routing...\n");
 #if _OPENMP
 #ifndef _WIN32
       double endTimeR = omp_get_wtime();
