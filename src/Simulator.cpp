@@ -1423,6 +1423,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       for (size_t i = 0; i < currentFF.size(); i++) {
         currentFF[i] = 0.0;
         currentSF[i] = 0.0;
+        currentBF[i] = 0.0;
       }
     }
     if (saveStates && stateTime == currentTime) {
@@ -1522,11 +1523,21 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         }
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
+      if ((griddedOutputs & OG_EXCRAIN) == OG_EXCRAIN) {
+        sprintf(buffer, "%s/surR.%s.%s.tif", outputPath,
+                currentTimeTextOutput.GetName(), wbModel->GetName());
+        gridWriter.WriteGrid(&nodes, &currentFF, buffer, false);
+      }      
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &SM, buffer, false);
       }
+      if ((griddedOutputs & OG_GW) == OG_GW) {
+        sprintf(buffer, "%s/gw.%s.%s.tif", outputPath,
+                currentTimeTextOutput.GetName(), wbModel->GetName());
+        gridWriter.WriteGrid(&nodes, &GW, buffer, false);
+      }      
       
       if (outputRP && ((griddedOutputs & OG_QRP) == OG_QRP)) {
         sprintf(buffer, "%s/rp.%s.%s.tif", outputPath,
@@ -1580,14 +1591,6 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
 
-      // 2019-04: output gridded surface runoff ---------------------------------
-      //sprintf(buffer, "%s/surR.%s.%s.asc", outputPath,
-      sprintf(buffer, "%s/surR.%s.%s.tif", outputPath,
-              currentTimeTextOutput.GetName(), wbModel->GetName());
-      //gridWriter.WriteGrid(&nodes, &currentFF, buffer, true);
-      //gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, true);
-      gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, false);
-      // ---------------------------------
     }
 
 #if _OPENMP
@@ -2145,6 +2148,7 @@ float Simulator::SimulateForCali(float *testParams) {
   currentSWECali.resize(currentFF.size());
   currentPrecipSnow.resize(currentFF.size());
   SMCali.resize(currentFF.size());
+  GWCali.resize(currentFF.size());
   simQCali.resize(simQ.size());
   avgPrecip.resize(gauges->size());
   avgPET.resize(gauges->size());
@@ -2172,8 +2176,8 @@ float Simulator::SimulateForCali(float *testParams) {
      gaugeMap.GaugeAverage(&nodes, petVec, &avgPET);
      printf("%f %f\n", precipVec->at(300), petVec->at(300));
      }*/
-    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentBFCali,
-                           &currentSFCali, &SMCali, &GWCali);
+    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentSFCali,
+                           &currentBFCali, &SMCali, &GWCali);
 
     runRoutingModel->Route(timeStepHours, &currentFFCali, &currentSFCali, &currentBFCali,
                            &currentQCali);

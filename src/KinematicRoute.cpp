@@ -212,7 +212,6 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
                        float fastFlow, float interFlow, float baseFlow) {
 
   if (!cNode->channelGridCell) {
-
     // overland routing
     // printf("%f\n",baseFlow);
 
@@ -318,9 +317,10 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
     interFlow += cNode->incomingWater[KW_LAYER_INTERFLOW];
     // printf(" %f ", cNode->incomingWater[KW_LAYER_INTERFLOW]);
     fastFlow /= 1000.0; // mm to m
-    baseFlow/= 1000.0;
+    baseFlow /= 1000.0;
     interFlow /= 1000.0; // mm to m
     float newInWater = (fastFlow + interFlow+ baseFlow);
+    // printf("fast flow: %f, interflow: %f, baseflow: %f\n",fastFlow,interFlow,baseFlow);
 
     float A, B, C, D, E;
     float backDiffq = 0.0;
@@ -427,6 +427,7 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
 
     cNode->incomingWater[KW_LAYER_FASTFLOW] = newWater;
     cNode->incomingWater[KW_LAYER_INTERFLOW] = 0.0;
+    cNode->incomingWater[KW_LAYER_BASEFLOW] = 0.0;
   }
 }
 
@@ -452,6 +453,7 @@ void KWRoute::InitializeParameters(
       cNode->states[STATE_KW_IR] = cNode->params[PARAM_KINEMATIC_ISU];
     }
     cNode->incomingWater[KW_LAYER_INTERFLOW] = 0.0;
+    cNode->incomingWater[KW_LAYER_BASEFLOW] = 0.0;
     cNode->incomingWater[KW_LAYER_FASTFLOW] = 0.0;
 
     // Deal with the distributed parameters here
@@ -526,6 +528,7 @@ void KWRoute::InitializeRouting(float timeSeconds) {
 
     float nexTimeUnder = node->horLen / speedUnder;
     cNode->nexTime[KW_LAYER_INTERFLOW] = nexTimeUnder;
+    cNode->nexTime[KW_LAYER_BASEFLOW] = nexTimeUnder;
   }
 
   // This pass figures out which cell water is routed to
@@ -567,17 +570,30 @@ void KWRoute::InitializeRouting(float timeSeconds) {
     cNode->routeNode[1][KW_LAYER_INTERFLOW] = previousNode;
     cNode->routeCNode[1][KW_LAYER_INTERFLOW] =
         (previousNode) ? &(kwNodes[previousNode->modelIndex]) : NULL;
+    cNode->routeNode[0][KW_LAYER_BASEFLOW] = currentNode;
+    cNode->routeCNode[0][KW_LAYER_BASEFLOW] =
+        (currentNode) ? &(kwNodes[currentNode->modelIndex]) : NULL;
+    cNode->routeNode[1][KW_LAYER_BASEFLOW] = previousNode;
+    cNode->routeCNode[1][KW_LAYER_BASEFLOW] =
+        (previousNode) ? &(kwNodes[previousNode->modelIndex]) : NULL;        
     if (currentNode && !kwNodes[currentNode->modelIndex].channelGridCell) {
       if ((currentSeconds - previousSeconds) > 0) {
         cNode->routeAmount[0][KW_LAYER_INTERFLOW] =
             (timeSeconds - previousSeconds) /
             (currentSeconds - previousSeconds);
         cNode->routeAmount[1][KW_LAYER_INTERFLOW] =
-            1.0 - cNode->routeAmount[0][KW_LAYER_INTERFLOW];
-      }
+            1.0 - cNode->routeAmount[0][KW_LAYER_BASEFLOW];
+        cNode->routeAmount[0][KW_LAYER_BASEFLOW] =
+            (timeSeconds - previousSeconds) /
+            (currentSeconds - previousSeconds);
+        cNode->routeAmount[1][KW_LAYER_BASEFLOW] =
+            1.0 - cNode->routeAmount[0][KW_LAYER_BASEFLOW];
+      }      
     } else {
       cNode->routeAmount[0][KW_LAYER_INTERFLOW] = 1.0;
       cNode->routeAmount[1][KW_LAYER_INTERFLOW] = 0.0;
+      cNode->routeAmount[0][KW_LAYER_BASEFLOW] = 1.0;
+      cNode->routeAmount[1][KW_LAYER_BASEFLOW] = 0.0;      
     }
   }
 }

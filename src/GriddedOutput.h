@@ -21,9 +21,11 @@ enum SUPPORTED_OUTPUT_GRIDS {
   OG_MAXTHRES = 32768,
   OG_MAXTHRESP = 65536,
   OG_PRECIPACCUM = 131072,
+  OG_EXCRAIN=262144, //excessive rainfall (overland)
+  OG_GW=524288, //Groundwater state
 };
 
-#define OG_QTY 19
+#define OG_QTY 21
 
 extern const char *GriddedOutputText[];
 extern const int GriddedOutputFlags[];

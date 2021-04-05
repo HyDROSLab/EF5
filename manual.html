@@ -17,7 +17,7 @@
 	<body>
 		<div id="header">
 			<h1>Ensemble Framework For Flash Flood Forecasting (EF5)</h1>
-			Version 1.0 (July, 2016)
+			Version 1.3.0 (April, 2021)
 		</div>
 		<div id="toc">
 			<h3>Table of Contents</h3>
@@ -25,6 +25,7 @@
 				<li><a href="#about">About EF5</a></li>
 				<li>Hydrologic Water Balance Models
 					<ol>
+            <li><a href="#crestphys">CRESTPHYS</a></li>
 						<li><a href="#crest">CREST</a></li>
 						<li><a href="#sac">SAC-SMA</a></li>
             <li><a href="#hp">HP</a></li>
@@ -56,6 +57,7 @@
 						<li><a href="#basin">Basins</a></li>
 						<li><a href="#param">Parameter Sets</a>
 							<ol>
+                <li><a href="#paramcrest">CRESTPHYS</a></li>
 								<li><a href="#paramcrest">CREST</a></li>
 								<li><a href="#paramsac">SAC-SMA</a></li>
                 <li><a href="#paramhp">HP</a></li>
@@ -88,6 +90,11 @@
 						<p>The Coupled Routing and Excess STorage (CREST) distributed hydrological model is a hybrid modeling strategy that was recently developed by the University of Oklahoma (<a href="http://hydro.ou.edu">http://hydro.ou.edu</a>) and NASA SERVIR Project Team (<a href="http://www.servir.net">www.servir.net</a>). CREST simulates the spatiotemporal variation of water and energy fluxes and storages on a regular grid with the grid cell resolution being user-defined, thereby enabling global- and regional-scale applications. The scalability of CREST simulations is accomplished through sub-grid scale representation of soil moisture storage capacity (using a variable infiltration curve) and runoff generation processes (using linear reservoirs).  The CREST model was initially developed to provide online global flood predictions with relatively coarse resolution, but it is also applicable at small scales, such as single basins. The CREST Model can be forced by gridded potential evapotranspiration and precipitation datasets such as, satellite-based precipitation estimates, gridded rain gauge observations, remote sensing platforms such as weather radar, and quantitative precipitation forecasts from numerical weather prediction models.  The representation of the primary water fluxes such as infiltration and routing are closely related to the spatially variable land surface characteristics (i.e., vegetation, soil type, and topography).  The runoff generation component and routing scheme are coupled, thus providing realistic interactions between atmospheric, land surface, and subsurface water.
 						<br /><br />More detailed information about CREST can be found in the following publication:<br /><a href="http://dx.doi.org/10.1080/02626667.2010.543087">Wang, J., Y. Hong, L. Li, J. J. Gourley, S. I. Khan, K. K. Yilmaz, R. F. Adler, F. S. Policelli, S. Habib, D. Irwin, A. S. Limaye, T. Korme, and L. Okello, 2011:  The coupled routing and excess storage (CREST) distributed hydrological model. <em>Hydrol. Sci. Journal</em>, <strong>56</strong>, 84-98, doi: 10.1080/02626667.2010.543087.</a>
 						</p>
+            <li><a name="crestphys">CRESTPHYS</a></li>
+						<p> CRESTPHYS builds upon the CREST model. Differently, it separates interflow with baseflow by using a fill-spill bucket to represent conceptual groundwater reservior. This approach is applied also in the National Water Model. We hope this enhanced module can bring benefits in representing baseflow and flow recession limb.
+						<br /><br />More detailed information about CRESTPHYS will follow...
+            <br><br>Contact Allen Zhi Li (li1995@ou.edu) if you have questions regarding this module</a>
+						</p>            
 						<li><a name="sac">SAC-SMA</a></li>
 						<p>The Sacramento Soil Moisture Accounting (SAC-SMA) Model was developed by the U.S. National Weather Service with the goal of parameterizing soil moisture characteristics in a fashion that would 1) logically distribute applied moisture in various depths and energy states in the soil 2) have rational percolation characteristics 3) allow an effective simulation of streamflow.
               <br /><br />More detailed information about SAC-SMA can be found online at <a href="http://www.nws.noaa.gov/oh/hrl/nwsrfs/users_manual/part2/_pdf/23sacsma.pdf"> U.S. NWS SAC-SMA algorithm description</a></p>
@@ -272,9 +279,31 @@ iwu=50.0
 					<span class="namec">KE:</span> The multiplier to convert between input PET and local actual ET.<br />
 					<span class="namec">FC:</span> The soil saturated hydraulic conductivity (Ksat). (mm hr<sup>-1</sup>) <br />
 					<span class="namec">IWU:</span> The initial value of soil water. This is a percentage of the WM. (% between 0 and 100)<br /><br />
-					
+					<li><a name="paramcrestphys">CRESTPHYS Parameter Set</a></li>
+<pre>
+  [CrestphysParamSet ABRFC]
+  gauge=03455500
+  wm_grid=/hydros/wm_usa.tif
+  im_grid=/hydros/im_usa.tif
+  fc_grid=/hydros/ksat_usa.tif
+  b_grid=/hydros/b_usa.tif
+  hmaxaq_grid=/hydros//params/hmaxaq.tif
+  gwe_grid=/hydros/params/gwe.tif
+  gwc_grid=/hydros/gwc.tif
+  wm=1.00
+  b=1.0
+  im=0.01
+  ke=1.0
+  fc=1.00
+  iwu=50.0
+  igw=25.0
+  hmaxaq_grid=1.0
+  gwc=1.0
+  gwe=1.0
+</pre>
 					<li><a name="paramsac">SAC-SMA Parameter Set</a></li>
           <pre>
+
 [SacParamSet ABRFC]
 UZTWM_grid=/data/FLASH/v2/sac_params/uztwm_usa.tif
 UZFWM_grid=/data/FLASH/v2/sac_params/uzfwm_usa.tif
@@ -428,6 +457,7 @@ TIME_END=201006010030
 				<span class="namec">MODEL:</span> The water balance model that this task should use. Possible values are:<br />
         <pre class="valuec">
 <em>CREST</em>: The Coupled Routing and Excess STorage distributed hydrological model.
+<em>CRESTPHYS</em>: CREST model + baseflow bucket
 <em>SAC</em>: The SAC-SMA model.
 <em>HyMOD</em>: HyMod.</pre>
         <span class="namec">ROUTING:</span> The routing method that this task should use. Possible values are:<br />
@@ -464,18 +494,22 @@ TIME_END=201006010030
         <span class="namec">OUTPUT_GRIDS:</span> <em>(Optional)</em> Which grids should be output, combine together with | :<br />
         <pre class="valuec">
 <em>NONE</em>: No gridded output.
-<em>STREAMFLOW</em>: Streamflow (cms)
-<em>SOILMOISTURE</em>: Soil moisture (%)
-<em>RETURNPERIOD</em>: Streamflow return period (years)
-<em>PRECIP</em>: Precipitaiton (mm)
-<em>PET</em>: Potential evapotranspiration (mm)
-<em>SNOWWATER</em>: Snow water equivalent from the snow melt model (mm)
-<em>TEMPERATURE</em>: Temperature (C)
-<em>INUNDATION</em>: Water depth (m)
-<em>MAXSTREAMFLOW</em>: Maximum streamflow during run (cms)
-<em>MAXSOILMOISTURE</em>: Maximum soil moisture during run (%)
-<em>MAXRETURNPERIOD</em>: Maximum return period during run (years)
-<em>MAXSNOWWATER</em>: Maximum snow water equivalent (mm)</pre>
+<em>streamflow</em>: Streamflow (cms)
+<em>unitstreamflow</em>: unit discharge (q/fac)
+<em>soilmoisture</em>: Soil moisture (%)
+
+<em>returnperiod</em>: Streamflow return period (years)
+<em>precip</em>: Precipitaiton (mm)
+<em>pet</em>: Potential evapotranspiration (mm)
+<em>snowwater</em>: Snow water equivalent from the snow melt model (mm)
+<em>temperature</em>: Temperature (C)
+<em>inundation</em>: Water depth (m)
+<em>maxstreamflow</em>: Maximum streamflow during run (cms)
+<em>maxsoilmoisture</em>: Maximum soil moisture during run (%)
+<em>maxreturnperiod</em>: Maximum return period during run (years)
+<em>maxsnowwater</em>: Maximum snow water equivalent (mm)
+<em>excessrain</em>: Excess rain (used if coupling CREST with other hydrodynamic models)
+<em>groundwater</em>: Conceptual groundwater table (mm)</pre>
         <span class="namec">DA_FILE:</span> <em>(Optional)</em> The input observations to be added for use with streamflow data assimilation,<br />
         <span class="namec">CO_FILE:</span> <em>(Optional)</em> The combined output file if one is desired.<br />
         <span class="namec">RP_STDGRID:</span> <em>(Optional)</em> The geotiff file representing the standard deviation for the Log-Pearson Type III return period distribution.<br />

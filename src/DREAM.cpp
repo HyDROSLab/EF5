@@ -204,6 +204,7 @@ void DREAM::CalibrateParams() {
   MEMORYCHECK(pointerRUNvar->Table_JumpRate,
               "at dream.c: Memory Allocation for DREAM run variable "
               "Table_JumpRate not successfull\n");
+
   //------Step 1: Sample s points in the parameter
   //space---------------------------//  if Extra.InitPopulation = 'LHS_BASED'
   // Latin hypercube sampling when indicated
@@ -213,16 +214,20 @@ void DREAM::CalibrateParams() {
 
   // Step 2: Calculate posterior density associated with each value in x
   allocate2D(&p, pointerMCMC->seq, 2);
+  // printf(" 0 allocating memory ...\n");
   MEMORYCHECK(
       p,
       "at dream.c: Memory Allocation for DREAM variable p not successfull\n");
   log_p = (float *)malloc(pointerMCMC->seq * sizeof(float));
+  // printf(" 1 allocating memory ...\n");
   MEMORYCHECK(log_p, "at dream.c: Memory Allocation for DREAM variable log_p "
                      "not successfull\n");
+  // printf(" 2 allocating memory ...\n");                   
   CompDensity(p, log_p, x, pointerMCMC, pointerInput, 3);
-
+  // printf(" 3 allocating memory ...\n");
   // Save the initial population, density and log density in one matrix X
   allocate2D(&X, pointerMCMC->seq, pointerMCMC->n + 2);
+  // printf(" 4 allocating memory ...\n");
   MEMORYCHECK(
       X,
       "at dream.c: Memory Allocation for DREAM variable X not successfull\n");
@@ -233,9 +238,10 @@ void DREAM::CalibrateParams() {
     X[i][pointerInput->nPar] = p[i][0];
     X[i][pointerInput->nPar + 1] = log_p[i];
   }
-
+  // printf(" 5 allocating memory ...\n");
   // Then initialize the sequences
   // if save in memory = Yes
+  // printf("Start initializing sequences...\n");
   InitSequences(X, pointerRUNvar->Sequences, pointerMCMC);
 
   // Reduced sample collection if reduced_sample_collection = Yes
@@ -263,6 +269,7 @@ void DREAM::CalibrateParams() {
   Gelman(pointerOutput->R_stat, 0, pointerRUNvar->Sequences,
          pointerRUNvar->iloc, pointerMCMC->n, pointerMCMC->seq, 0);
 
+  // printf("preparing allocate variables \n");
   // Allocate Variables
   allocate2D(&x_old, pointerMCMC->seq, pointerMCMC->n);
   MEMORYCHECK(x_old, "at dream.c: Memory Allocation for DREAM variable x_old "
@@ -311,7 +318,7 @@ void DREAM::CalibrateParams() {
 #ifdef _WIN32
   setIteration(0);
 #endif
-
+  // printf("Start iteration...\n");
   // Now start iteration ...
   while ((pointerRUNvar->Iter < pointerMCMC->ndraw) && !converged) {
     // Loop a number of times

@@ -357,6 +357,11 @@ void CRESTPHYSModel::InitializeParameters(
                                       cNode->params[PARAM_CRESTPHYS_WM] / 100.0;
     }
 
+    if (!paramGrids->at(PARAM_CRESTPHYS_IGW)) {
+      cNode->states[STATE_CRESTPHYS_GW] = cNode->params[PARAM_CRESTPHYS_IGW] *
+                                      cNode->params[PARAM_CRESTPHYS_HMAXAQ] / 100.0;
+    }    
+
     if (cNode->params[PARAM_CRESTPHYS_WM] < 0.0) {
       cNode->params[PARAM_CRESTPHYS_WM] = 100.0;
     }
@@ -394,6 +399,9 @@ void CRESTPHYSModel::InitializeParameters(
       // printf("Node B (%f) is less than 0, setting to 0.\n",
       // cNode->params[PARAM_CREST_B]);
       cNode->params[PARAM_CRESTPHYS_FC] = 1.0;
+    }
+    if (cNode->params[PARAM_CRESTPHYS_IGW<0.0]){
+      cNode->params[PARAM_CRESTPHYS_IGW]=0.0;
     }
 
     if (cNode->params[PARAM_CRESTPHYS_HMAXAQ<0.0]){
