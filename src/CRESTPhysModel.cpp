@@ -153,7 +153,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   }*/
 
   // Base flow continuity
-  // cNode->states[STATE_CRESTPHYS_GW]+= *baseFlow;
+  cNode->states[STATE_CRESTPHYS_GW]+= *baseFlow;
 
   // We have more water coming in than leaving via ET.
   if (precip > adjPET) {
@@ -277,16 +277,17 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
       Wo = 0.0; // We don't have enough to evaporate ExcessET.
       ExcessET = cNode->states[STATE_CRESTPHYS_SM];
     }
-    double resET = adjPET - ExcessET - precip;
+    double resET = (adjPET - ExcessET - precip)*cNode->states[STATE_CRESTPHYS_GW]/cNode->params[PARAM_CRESTPHYS_HMAXAQ];
     
-    if (resET<0){
-      resET = 0.0;
+    if (resET<cNode->states[STATE_CRESTPHYS_GW]){
+      cNode->states[STATE_CRESTPHYS_GW]-= resET;
     }
-    else if (resET>cNode->states[STATE_CRESTPHYS_GW]){
+    else {
       resET= cNode->states[STATE_CRESTPHYS_GW];
+      cNode->states[STATE_CRESTPHYS_GW]-= resET;
     }
     // printf("groundwater 0: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
-    cNode->states[STATE_CRESTPHYS_GW]-= resET;
+    
     // printf("groundwater 1: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
     cNode->actET = resET+ExcessET + precip;
   }
@@ -312,6 +313,8 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   }
   double baseflowExp= cNode->params[PARAM_CRESTPHYS_GWC]*(exp(cNode->params[PARAM_CRESTPHYS_GWE]*
                         cNode->states[STATE_CRESTPHYS_GW]/cNode->params[PARAM_CRESTPHYS_HMAXAQ])-1);
+  // printf("GWC: %f, GWE: %f, GW: %f, HMAX: %f, baseflow: %f\n", cNode->params[PARAM_CRESTPHYS_GWC],
+  //   cNode->params[PARAM_CRESTPHYS_GWE], cNode->states[STATE_CRESTPHYS_GW],cNode->params[PARAM_CRESTPHYS_HMAXAQ], baseflowExp);
   // printf("groundwater 3: %f\n", cNode->states[STATE_CRESTPHYS_GW]);                      
   if (baseflowExp>cNode->states[STATE_CRESTPHYS_GW]){
     baseflowExp= cNode->states[STATE_CRESTPHYS_GW];
@@ -323,6 +326,7 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
   // printf("groundwater flow : %f\n", baseflowExp);
   // printf("groundwater 4: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
   *baseFlow = ((baseflowExcess+baseflowExp) / (stepHours * 3600.0f));
+  // printf("baseflow: %f\n", *baseFlow);
 
   // Calculate Discharge as the sum of the leaks
   //*discharge = (overlandLeak + interflowLeak) * node->area / 3.6;
@@ -432,11 +436,11 @@ void CRESTPHYSModel::InitializeParameters(
       cNode->params[PARAM_CRESTPHYS_HMAXAQ]=0.1;
     }
 
-    if (cNode->params[PARAM_CRESTPHYS_GWE<0.0]){
+    if (cNode->params[PARAM_CRESTPHYS_GWE]<0.0){
       cNode->params[PARAM_CRESTPHYS_GWE]=0;
     }
 
-    if (cNode->params[PARAM_CRESTPHYS_GWC<0.0]){
+    if (cNode->params[PARAM_CRESTPHYS_GWC]<0.0){
       cNode->params[PARAM_CRESTPHYS_GWC]=0;
     }
 

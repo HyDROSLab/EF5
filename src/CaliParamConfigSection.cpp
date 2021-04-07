@@ -63,7 +63,7 @@ CONFIG_SEC_RET CaliParamConfigSection::ProcessKeyValue(char *name,
       }
     }
     ERROR_LOGF("Unknown objective function option \"%s\"!", value);
-    INFO_LOGF("Valid objective function options are \"%s\"", "NSCE, CC, SSE");
+    INFO_LOGF("Valid objective function options are \"%s\"", "NSCE, LOGNSCE, CC, SSE, KGE");
     return INVALID_RESULT;
   } else if (!strcasecmp(name, "ars_topnum")) {
     ars_topNum = atoi(value);
