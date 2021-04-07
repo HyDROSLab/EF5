@@ -292,7 +292,7 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
       cNode->routeCNode[0][KW_LAYER_INTERFLOW]->incomingWater[KW_LAYER_INTERFLOW]);
       }*/
       // printf("0 got here... incoming base flow: %f, leakAmount: %f\n",cNode->routeCNode[0][KW_LAYER_INTERFLOW]->incomingWater[KW_LAYER_INTERFLOW], leakAmount);
-      cNode->incomingWater[KW_LAYER_BASEFLOW] += leakAmount;
+      cNode->routeCNode[0][KW_LAYER_BASEFLOW]->incomingWater[KW_LAYER_BASEFLOW] += leakAmount;
       //*res += leakAmount; // Make this an atomic add for parallelization
     }
 
@@ -303,7 +303,7 @@ void KWRoute::RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
           node->area / cNode->routeNode[1][KW_LAYER_INTERFLOW]->area;
       double leakAmount = interflowLeak1;
       // printf(" 1 got %f ", leakAmount);
-      double *res = &(cNode->incomingWater[KW_LAYER_BASEFLOW]);
+      double *res = &(cNode->routeCNode[1][KW_LAYER_BASEFLOW]->incomingWater[KW_LAYER_BASEFLOW]);
       *res += leakAmount; // Make this an atomic add for parallelization
     }
 
@@ -582,7 +582,8 @@ void KWRoute::InitializeRouting(float timeSeconds) {
             (timeSeconds - previousSeconds) /
             (currentSeconds - previousSeconds);
         cNode->routeAmount[1][KW_LAYER_INTERFLOW] =
-            1.0 - cNode->routeAmount[0][KW_LAYER_BASEFLOW];
+            1.0 - cNode->routeAmount[0][KW_LAYER_INTERFLOW];
+
         cNode->routeAmount[0][KW_LAYER_BASEFLOW] =
             (timeSeconds - previousSeconds) /
             (currentSeconds - previousSeconds);

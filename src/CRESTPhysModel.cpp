@@ -251,6 +251,8 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
         interflowExcess; // Extra interflow that got routed.
   } else {               // All the incoming precip goes straight to ET
     cNode->excess[CRESTPHYS_LAYER_OVERLAND] = 0.0;
+    cNode->excess[CRESTPHYS_LAYER_BASEFLOW] = 0.0;
+    cNode->excess[CRESTPHYS_LAYER_INTERFLOW] = 0.0;
 
     // cNode->states[STATE_CRESTPHYS_SM] += *slowFlow;
     //*slowFlow = 0.0;
@@ -275,11 +277,23 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
       Wo = 0.0; // We don't have enough to evaporate ExcessET.
       ExcessET = cNode->states[STATE_CRESTPHYS_SM];
     }
-    cNode->actET = ExcessET + precip;
+    double resET = adjPET - ExcessET - precip;
+    
+    if (resET<0){
+      resET = 0.0;
+    }
+    else if (resET>cNode->states[STATE_CRESTPHYS_GW]){
+      resET= cNode->states[STATE_CRESTPHYS_GW];
+    }
+    // printf("groundwater 0: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
+    cNode->states[STATE_CRESTPHYS_GW]-= resET;
+    // printf("groundwater 1: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
+    cNode->actET = resET+ExcessET + precip;
   }
 
   cNode->states[STATE_CRESTPHYS_SM] = Wo;
   cNode->states[STATE_CRESTPHYS_GW] += cNode->excess[CRESTPHYS_LAYER_BASEFLOW];
+  // printf("groundwater 2: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
   // Add Overland Excess Water to fastFlow
   *fastFlow += (cNode->excess[CRESTPHYS_LAYER_OVERLAND] / (stepHours * 3600.0f));
 
@@ -291,14 +305,24 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
     // spill
     baseflowExcess= cNode->states[STATE_CRESTPHYS_GW]-cNode->params[PARAM_CRESTPHYS_HMAXAQ];
     cNode->states[STATE_CRESTPHYS_GW]=cNode->params[PARAM_CRESTPHYS_HMAXAQ];
+    // printf("set groundwater level %.2f to maximum aquifer depth %.2f...\n",cNode->states[STATE_CRESTPHYS_GW], cNode->params[PARAM_CRESTPHYS_HMAXAQ]);
   }
   else{
     baseflowExcess=0.0;
   }
-  double baseflowExp= cNode->params[PARAM_CRESTPHYS_GWC]*exp(cNode->params[PARAM_CRESTPHYS_GWE]*
-                        cNode->states[STATE_CRESTPHYS_GW]/cNode->params[PARAM_CRESTPHYS_HMAXAQ]-1);
-
-  *baseFlow += ((baseflowExcess+baseflowExp) / (stepHours * 3600.0f));
+  double baseflowExp= cNode->params[PARAM_CRESTPHYS_GWC]*(exp(cNode->params[PARAM_CRESTPHYS_GWE]*
+                        cNode->states[STATE_CRESTPHYS_GW]/cNode->params[PARAM_CRESTPHYS_HMAXAQ])-1);
+  // printf("groundwater 3: %f\n", cNode->states[STATE_CRESTPHYS_GW]);                      
+  if (baseflowExp>cNode->states[STATE_CRESTPHYS_GW]){
+    baseflowExp= cNode->states[STATE_CRESTPHYS_GW];
+    cNode->states[STATE_CRESTPHYS_GW]=0;
+  }
+  else{
+    cNode->states[STATE_CRESTPHYS_GW]-=baseflowExp;
+  }
+  // printf("groundwater flow : %f\n", baseflowExp);
+  // printf("groundwater 4: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
+  *baseFlow = ((baseflowExcess+baseflowExp) / (stepHours * 3600.0f));
 
   // Calculate Discharge as the sum of the leaks
   //*discharge = (overlandLeak + interflowLeak) * node->area / 3.6;
@@ -365,7 +389,7 @@ void CRESTPHYSModel::InitializeParameters(
     if (cNode->params[PARAM_CRESTPHYS_WM] < 0.0) {
       cNode->params[PARAM_CRESTPHYS_WM] = 100.0;
     }
-
+    // printf("Maximum aquifer depth: %f\n",cNode->params[PARAM_CRESTPHYS_HMAXAQ]);
     if (cNode->states[STATE_CRESTPHYS_SM] < 0.0) {
       printf("Node Soil Moisture(%f) is less than 0, setting to 0.\n",
              cNode->states[STATE_CRESTPHYS_SM]);
@@ -400,11 +424,11 @@ void CRESTPHYSModel::InitializeParameters(
       // cNode->params[PARAM_CREST_B]);
       cNode->params[PARAM_CRESTPHYS_FC] = 1.0;
     }
-    if (cNode->params[PARAM_CRESTPHYS_IGW<0.0]){
+    if (cNode->params[PARAM_CRESTPHYS_IGW]<0.0){
       cNode->params[PARAM_CRESTPHYS_IGW]=0.0;
     }
 
-    if (cNode->params[PARAM_CRESTPHYS_HMAXAQ<0.0]){
+    if (cNode->params[PARAM_CRESTPHYS_HMAXAQ]<0.0){
       cNode->params[PARAM_CRESTPHYS_HMAXAQ]=0.1;
     }
 

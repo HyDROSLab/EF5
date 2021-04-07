@@ -317,6 +317,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
   avgSWE.resize(gauges->size());
   avgT.resize(gauges->size());
   avgSM.resize(gauges->size());
+  avgGW.resize(gauges->size());
   avgFF.resize(gauges->size());
   avgSF.resize(gauges->size());
   avgBF.resize(gauges->size());
@@ -373,7 +374,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
         // setvbuf(gaugeOutputs[i], NULL, _IONBF, 0);
         fprintf(gaugeOutputs[i], "%s",
                 "Time,Discharge(m^3 s^-1),Observed(m^3 s^-1),Precip(mm "
-                "h^-1),PET(mm h^-1),SM(%),Fast Flow(mm*1000),Slow "
+                "h^-1),PET(mm h^-1),SM(%),Groundwater (mm),Fast Flow(mm*1000),Slow "
                 "Flow(mm*1000),Base Flow(mm*1000)");
         if (sModel) {
           fprintf(gaugeOutputs[i], "%s", ",Temperature (C),SWE(mm)");
@@ -971,15 +972,15 @@ void Simulator::SaveTSOutput() {
     GaugeConfigSection *gauge = gauges->at(i);
     if (gaugeOutputs[i]) {
       if (std::isfinite(currentQ[gauge->GetGridNodeIndex()])) {
-        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(), currentQ[gauge->GetGridNodeIndex()],
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
+              avgSM[i],  avgGW[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       } else {
-        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(),
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
+              avgSM[i], avgGW[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       }
       if (sModel) {
         fprintf(gaugeOutputs[i], ",%.2f,%.2f", avgT[i], avgSWE[i]);
@@ -1459,6 +1460,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
 
       if (outputTS) {
         gaugeMap.GaugeAverage(&nodes, &SM, &avgSM);
+        gaugeMap.GaugeAverage(&nodes, &GW, &avgGW);
         if (!preloadedForcings) {
           gaugeMap.GaugeAverage(&nodes, currentPrecip, &avgPrecip);
           gaugeMap.GaugeAverage(&nodes, &currentPETSimu, &avgPET);
@@ -1526,7 +1528,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       if ((griddedOutputs & OG_EXCRAIN) == OG_EXCRAIN) {
         sprintf(buffer, "%s/surR.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());
-        gridWriter.WriteGrid(&nodes, &currentFF, buffer, false);
+        gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, false);
       }      
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath,

@@ -87,7 +87,7 @@ private:
   DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile,
       currentTimeText, currentTimeTextOutput;
   std::vector<float> currentFF, currentSF, currentBF, currentQ, avgPrecip, avgPET, avgSWE,
-      currentSWE, avgT, avgSM, avgFF, avgSF, avgBF, currentDepth;
+      currentSWE, avgT, avgSM,avgGW, avgFF, avgSF, avgBF, currentDepth;
   std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow,
       paramGridsInundation;
   bool hasQPF, hasTempF, wantsDA;
