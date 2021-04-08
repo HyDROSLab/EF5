@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-const char *objectiveStrings[] = {"lognsce","nsce", "cc", "sse","kge"};
+const char *objectiveStrings[] = {"nsce", "lognsce", "cc", "sse","kge"};
 
 const OBJECTIVE_GOAL objectiveGoals[] = {
     OBJECTIVE_GOAL_MAXIMIZE,
@@ -26,10 +26,10 @@ float CalcObjFunc(std::vector<float> *obs, std::vector<float> *sim,
                   OBJECTIVES obj) {
 
   switch (obj) {
-  case OBJECTIVE_LOGNSCE:
-    return CalcLOGNSCE(obs,sim);
   case OBJECTIVE_NSCE:
-    return CalcNSCE(obs, sim);
+    return CalcNSCE(obs,sim);
+  case OBJECTIVE_LOGNSCE:
+    return CalcLOGNSCE(obs, sim);
   case OBJECTIVE_CC:
     return CalcCC(obs, sim);
   case OBJECTIVE_SSE:

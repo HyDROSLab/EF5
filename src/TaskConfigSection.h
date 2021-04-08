@@ -20,6 +20,7 @@
 #include "TimeUnit.h"
 #include "TimeVar.h"
 #include <map>
+#include <list>
 
 class TaskConfigSection : public ConfigSection {
 
@@ -45,8 +46,10 @@ public:
   char *GetDAFile();
   char *GetCOFile();
   TimeVar *GetTimeBegin();
+  std::vector<TimeVar*> *GetTimeBegins();  
   TimeVar *GetTimeWarmEnd();
   TimeVar *GetTimeEnd();
+  std::vector<TimeVar*> *GetTimeEnds();  
   TimeVar *GetTimeState();
   TimeUnit *GetTimeStep();
   TimeUnit *GetTimeStepLR();
@@ -76,6 +79,7 @@ public:
   CONFIG_SEC_RET ProcessKeyValue(char *name, char *value);
   CONFIG_SEC_RET ValidateSection();
   int GetGriddedOutputs() { return griddedOutputs; }
+  
 
   static bool IsDuplicate(char *name);
 
@@ -125,6 +129,8 @@ private:
   int griddedOutputs;
 
   bool LoadGriddedOutputs(char *value);
+  std::vector<TimeVar*> timeBegins;
+  std::vector<TimeVar*> timeEnds;
 };
 
 extern std::map<std::string, TaskConfigSection *> g_taskConfigs;

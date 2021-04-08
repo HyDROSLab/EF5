@@ -103,13 +103,17 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
 
   // Initialize time information
   currentTime = *(task->GetTimeBegin());
+
+  currentTimes= *(task->GetTimeBegins());  // Leave for multi-event calibration if necessary
   currentTimePrecip = *(task->GetTimeBegin());
   currentTimeQPF = *(task->GetTimeBegin());
   currentTimePET = *(task->GetTimeBegin());
   currentTimeTemp = *(task->GetTimeBegin());
   currentTimeTempF = *(task->GetTimeBegin());
   beginTime = *(task->GetTimeBegin());
-  endTime = *(task->GetTimeEnd());
+  beginTimes= *(task->GetTimeBegins());  // Leave for multi-event calibration if necessary
+  endTime = *(task->GetTimeEnd());  // Leave for multi-event calibration if necessary
+  endTimes= *(task->GetTimeEnds());
   warmEndTime = *(task->GetTimeWarmEnd());
 
   // Initialize file name information
