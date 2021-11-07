@@ -9,7 +9,7 @@ The goal of EF5 is to have a framework for distributed hydrologic modeling that 
 
 EF5 has a homepage at [http://ef5.ou.edu](http://ef5.ou.edu). The training modules are found at [http://ef5.ou.edu/training/](http://ef5.ou.edu/training/) while the YouTube videos may be found at [https://www.youtube.com/channel/UCgoGJtdeqHgwoYIRhkgMwog](https://www.youtube.com/channel/UCgoGJtdeqHgwoYIRhkgMwog). The source code is found on GitHub at [https://github.com/HyDROSLab/EF5](https://github.com/HyDROSLab/EF5).
 
-See [manual.html](manual.html) for the EF5 operating manual which describes configuration options.
+See [manual.html](https://chrimerss.github.io/EF5/docs/) for the EF5 operating manual which describes configuration options.
 
 ## Compiling
 
