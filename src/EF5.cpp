@@ -57,6 +57,6 @@ void PrintStartupMessage() {
   printf("%s", "**   Ensemble Framework For Flash Flood Forecasting   **\n");
   printf("**                   Version %s                    **\n",
          EF5_VERSION);
-  printf("**         Last modified date: 2021-04-07             **\n");
+  printf("**         Last modified date: 2022-02-17             **\n");
   printf("%s", "********************************************************\n");
 }

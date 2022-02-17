@@ -81,6 +81,16 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
     timeStepTemp = NULL;
   }
 
+  if (timeStepPrecip->GetTimeInSec() < timeStep->GetTimeInSec()) {
+    ERROR_LOG("The time step for precipitation must be greater or equal to the overall time step.");
+    return false;
+  }
+
+  if (timeStepPET->GetTimeInSec() < timeStep->GetTimeInSec()) {
+    ERROR_LOG("The time step for PET must be greater or equal to the overall time step.");
+    return false;
+  }
+
   // Initialize unit converters
   precipConvert =
       (3600.0 / (float)task->GetPrecipSec()->GetUnitTime()->GetTimeInSec());
@@ -103,7 +113,6 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
 
   // Initialize time information
   currentTime = *(task->GetTimeBegin());
-
   currentTimes= *(task->GetTimeBegins());  // Leave for multi-event calibration if necessary
   currentTimePrecip = *(task->GetTimeBegin());
   currentTimeQPF = *(task->GetTimeBegin());
@@ -1391,14 +1400,30 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
                             &(currentPETCali[tsIndex]), &currentFF, &currentSF, &currentBF,
                             &SM, &GW);
     }
-
-    // 2019-04: output gridded surface runoff ---------------------------------
-    for (size_t i = 0; i < currentFF.size(); i++) {
-      currentFF_o[i] = currentFF[i] * 3600.0f;  // from mm/sec to mm/hr
+    if (griddedOutputs && ((griddedOutputs & OG_RUNOFF)==OG_RUNOFF)) {
+      // 2021-04 Allen: output gridded surface runoff ---------------------------------
+      std::vector<float> _runoff;
+      _runoff.resize(currentFF.size());
+      for (size_t i = 0; i < currentFF.size(); i++) {
+        float val = currentFF[i] * 3600.0f;
+        _runoff[i] = val;
+      }
+      sprintf(buffer, "%s/runoff.%s.%s.tif", outputPath,
+              currentTimeTextOutput.GetName(), wbModel->GetName());
+      gridWriter.WriteGrid(&nodes, &_runoff, buffer, false);
     }
-    //memcpy(currentFF_o,currentFF,sizeof(currentFF_o));
-    //memcpy(currentFF_o, currentFF, sizeof(float) * currentFF.size() );
-    // ---------------------------------
+
+    if (griddedOutputs && ((griddedOutputs & OG_SUBSURF) == OG_SUBSURF)) {
+      std::vector<float> _subsurface;
+      _subsurface.resize(currentSF.size());
+      for (size_t i = 0; i < currentSF.size(); i++) {
+          float val = currentSF[i] * 3600.0f;
+          _subsurface[i] = val;
+        }
+        sprintf(buffer, "%s/subrunoff.%s.%s.tif", outputPath,
+                currentTimeTextOutput.GetName(), wbModel->GetName());
+        gridWriter.WriteGrid(&nodes, &_subsurface, buffer, false);
+      }    
 
     if (outputTS) {
       gaugeMap.GaugeAverage(&nodes, &currentFF, &avgFF);
@@ -1528,12 +1553,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
           currentDepth[i] = val;
         }
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
-      }
-      if ((griddedOutputs & OG_EXCRAIN) == OG_EXCRAIN) {
-        sprintf(buffer, "%s/surR.%s.%s.tif", outputPath,
-                currentTimeTextOutput.GetName(), wbModel->GetName());
-        gridWriter.WriteGrid(&nodes, &currentFF_o, buffer, false);
-      }      
+      }  
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());

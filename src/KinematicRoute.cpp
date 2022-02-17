@@ -181,7 +181,7 @@ bool KWRoute::Route(float stepHours, std::vector<float> *fastFlow,
   for (size_t i = 0; i < numNodes; i++) {
     KWGridNode *cNode = &(kwNodes[i]);
     interFlow->at(i) = 0.0; // cNode->incomingWater[KW_LAYER_INTERFLOW];
-    baseFlow ->at(i)=0.0;
+    baseFlow ->at(i)=  0.0; // cNode->incomingWater[KW_LAYER_BASEFLOW];
     fastFlow->at(i) = 0.0; // cNode->incomingWater[KW_LAYER_FASTFLOW];
     cNode->incomingWaterOverland = 0.0;
     cNode->incomingWaterChannel = 0.0;
