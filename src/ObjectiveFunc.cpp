@@ -77,24 +77,29 @@ float CalcLOGNSCE(std::vector<float> *obs, std::vector<float> *sim){
   size_t totalTimeSteps = obs->size();
   for (size_t tsIndex = 0; tsIndex < totalTimeSteps; tsIndex++) {
     if ((*obs)[tsIndex] == (*obs)[tsIndex] &&
-        (*sim)[tsIndex] == (*sim)[tsIndex]) {
+        (*sim)[tsIndex] == (*sim)[tsIndex]&&
+        (*sim)[tsIndex] !=0 &&
+        (*obs)[tsIndex] !=0) {
       obsMean += (*obs)[tsIndex];
       validQs++;
     }
   }
 
   obsMean /= validQs;
+  float logobsMean= log(obsMean);
 
   for (size_t tsIndex = 0; tsIndex < totalTimeSteps; tsIndex++) {
     if ((*obs)[tsIndex] == (*obs)[tsIndex] &&
-        (*sim)[tsIndex] == (*sim)[tsIndex]) {
+        (*sim)[tsIndex] == (*sim)[tsIndex] &&
+        (*sim)[tsIndex] !=0 &&
+        (*obs)[tsIndex] !=0) {
       // printf("%f %f\n", (*obs)[tsIndex], (*sim)[tsIndex]);
-      obsAcc += powf((*obs)[tsIndex] - obsMean, 2.0);
-      simAcc += powf((*obs)[tsIndex] - (*sim)[tsIndex], 2.0);
+      obsAcc += powf( log((*obs)[tsIndex]) - logobsMean, 2.0);
+      simAcc += powf( log((*obs)[tsIndex]) - log((*sim)[tsIndex]), 2.0);
     }
   }
 
-  float result = log10(1.0 - (simAcc / obsAcc));
+  float result = 1.0 - (simAcc / obsAcc);
   if (result == result) {
     return result;
   } else {
