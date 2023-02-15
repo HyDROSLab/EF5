@@ -221,7 +221,9 @@ void SAC::SaveStates(TimeVar *currentTime, char *statePath,
 bool SAC::WaterBalance(float stepHours, std::vector<float> *precip,
                        std::vector<float> *pet, std::vector<float> *fastFlow,
                        std::vector<float> *slowFlow,
-                       std::vector<float> *soilMoisture) {
+                       std::vector<float> *baseFlow,
+                       std::vector<float> *soilMoisture,
+                       std::vector<float> *groundwater) {
 
   size_t numNodes = nodes->size();
   size_t i = 0;
@@ -238,6 +240,7 @@ bool SAC::WaterBalance(float stepHours, std::vector<float> *precip,
     WaterBalanceInt(node, cNode, stepHours, precip->at(i), pet->at(i));
     fastFlow->at(i) += (cNode->dischargeF / (stepHours * 3600.0f));
     slowFlow->at(i) += (cNode->dischargeS / (stepHours * 3600.0f));
+    baseFlow->at(i) += (cNode->dischargeS / (stepHours * 3600.0f));
     soilMoisture->at(i) =
         100.0 * (cNode->UZTWC + cNode->UZFWC) /
         (cNode->params[PARAM_SAC_UZTWM] + cNode->params[PARAM_SAC_UZFWM]);

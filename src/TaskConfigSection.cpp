@@ -100,11 +100,16 @@ char *TaskConfigSection::GetCOFile() { return coFile; }
 
 TimeVar *TaskConfigSection::GetTimeBegin() { return &timeBegin; }
 
+std::vector<TimeVar*> *TaskConfigSection::GetTimeBegins() { return &timeBegins; }
+
+std::vector<TimeVar*> *TaskConfigSection::GetTimeEnds() { return &timeEnds; }
+
 TimeVar *TaskConfigSection::GetTimeState() { return &timeState; }
 
 TimeVar *TaskConfigSection::GetTimeWarmEnd() { return &timeWarmEnd; }
 
 TimeVar *TaskConfigSection::GetTimeEnd() { return &timeEnd; }
+
 
 TimeVar *TaskConfigSection::GetTimeBeginLR() {
   if (!timestepLRSet || !timeBeginLRSet) {
@@ -195,15 +200,18 @@ CONFIG_SEC_RET TaskConfigSection::ProcessKeyValue(char *name, char *value) {
                                                     "CLIP_GAUGE, BASIN_AVG");
     return INVALID_RESULT;
   } else if (!strcasecmp(name, "model")) {
+
     for (int i = 0; i < MODEL_QTY; i++) {
+
       if (!strcasecmp(value, modelStrings[i])) {
+        
         modelSet = true;
         model = (MODELS)i;
         return VALID_RESULT;
       }
     }
     ERROR_LOGF("Unknown water balance model option \"%s\"!", value);
-    INFO_LOGF("Valid water balance options are \"%s\"", "CREST, SAC, HP");
+    INFO_LOGF("Valid water balance options are \"%s\"", "CREST, CRESTPHYS, SAC, HP");
     return INVALID_RESULT;
   } else if (!strcasecmp(name, "routing")) {
     for (int i = 0; i < ROUTE_QTY; i++) {
@@ -428,10 +436,20 @@ CONFIG_SEC_RET TaskConfigSection::ProcessKeyValue(char *name, char *value) {
     }
     timeStateSet = true;
   } else if (!strcasecmp(name, "time_begin")) {
-    if (!timeBegin.LoadTime(value)) {
+    
+      char *part = strtok(value, "|");
+      while (part != NULL) {
+
+      if (!timeBegin.LoadTime(part)) {
       ERROR_LOGF("Unknown time begin option \"%s\"", value);
       return INVALID_RESULT;
+      }
+      else{
+        timeBegins.push_back(&timeBegin);
+      }
+      part = strtok(NULL, "|");
     }
+    
     timeBeginSet = true;
   } else if (!strcasecmp(name, "time_begin_lr")) {
     if (!timeBeginLR.LoadTime(value)) {
@@ -446,10 +464,22 @@ CONFIG_SEC_RET TaskConfigSection::ProcessKeyValue(char *name, char *value) {
     }
     timeWarmEndSet = true;
   } else if (!strcasecmp(name, "time_end")) {
-    if (!timeEnd.LoadTime(value)) {
+          char *part = strtok(value, "|");
+      while (part != NULL) {
+
+      if (!timeEnd.LoadTime(part)) {
       ERROR_LOGF("Unknown time end option \"%s\"", value);
       return INVALID_RESULT;
+      }
+      else{
+        timeEnds.push_back(&timeEnd);
+      }
+      part = strtok(NULL, "|");
     }
+    // if (!timeEnd.LoadTime(value)) {
+    //   ERROR_LOGF("Unknown time end option \"%s\"", value);
+    //   return INVALID_RESULT;
+    // }
     timeEndSet = true;
   } else if (!strcasecmp(name, "cali_param")) {
     if (!modelSet) {

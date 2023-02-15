@@ -14,7 +14,10 @@ void GridWriterFull::Initialize() {
   grid.numCols = g_DEM->numCols;
   grid.numRows = g_DEM->numRows;
   grid.cellSize = g_DEM->cellSize;
-  grid.noData = -9999.0f;
+  // 2019-04: output gridded surface runoff ---------------------------------
+  //grid.noData = -9999.0f;
+  grid.noData = -9.0f;
+  // --------------------------------- 
   grid.geoSet = g_DEM->geoSet;
   grid.modelType = g_DEM->modelType;
   grid.geographicType = g_DEM->geographicType;

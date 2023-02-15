@@ -205,7 +205,9 @@ void WriteFloatAscGrid(const char *file, FloatGrid *grid) {
   for (long row = 0; row < grid->numRows; row++) {
     long lastCol = grid->numCols - 1;
     for (long col = 0; col < grid->numCols; col++) {
-      fprintf(fileH, "%.05f%s", grid->data[row][col],
+      // 2019-04: output gridded surface runoff --------------------------------- 
+      //fprintf(fileH, "%.05f%s", grid->data[row][col],
+      fprintf(fileH, "%.02f%s", grid->data[row][col],
               (col == lastCol) ? "\n" : " ");
     }
   }

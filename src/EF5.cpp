@@ -55,7 +55,8 @@ int main(int argc, char *argv[]) {
 void PrintStartupMessage() {
   printf("%s", "********************************************************\n");
   printf("%s", "**   Ensemble Framework For Flash Flood Forecasting   **\n");
-  printf("**                   Version %s                     **\n",
+  printf("**                   Version %s                    **\n",
          EF5_VERSION);
+  printf("**         Last modified date: 2023-02-14             **\n");
   printf("%s", "********************************************************\n");
 }

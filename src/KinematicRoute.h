@@ -6,6 +6,7 @@
 enum KW_LAYER {
   KW_LAYER_FASTFLOW,
   KW_LAYER_INTERFLOW,
+  KW_LAYER_BASEFLOW,
   KW_LAYER_QTY,
 };
 
@@ -46,16 +47,17 @@ public:
                        std::vector<FloatGrid *> *paramGrids);
   void InitializeStates(TimeVar *beginTime, char *statePath,
                         std::vector<float> *fastFlow,
-                        std::vector<float> *slowFlow);
+                        std::vector<float> *interFlow,
+                        std::vector<float> *baseFlow);
   void SaveStates(TimeVar *currentTime, char *statePath,
                   GridWriterFull *gridWriter);
   bool Route(float stepHours, std::vector<float> *fastFlow,
-             std::vector<float> *slowFlow, std::vector<float> *discharge);
+             std::vector<float> *interFlow, std::vector<float> *baseFlow, std::vector<float> *discharge);
   float GetMaxSpeed() { return maxSpeed; }
 
 private:
   void RouteInt(float stepSeconds, GridNode *node, KWGridNode *cNode,
-                float fastFlow, float slowFlow);
+                float fastFlow, float interFlow, float baseFlow);
   void
   InitializeParameters(std::map<GaugeConfigSection *, float *> *paramSettings,
                        std::vector<FloatGrid *> *paramGrids);

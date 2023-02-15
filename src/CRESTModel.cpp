@@ -10,6 +10,7 @@
 
 static const char *stateStrings[] = {
     "SM",
+    "GW",
 };
 
 CRESTModel::CRESTModel() {}
@@ -100,22 +101,27 @@ void CRESTModel::SaveStates(TimeVar *currentTime, char *statePath,
   }
 }
 
-bool CRESTModel::WaterBalance(float stepHours, std::vector<float> *precip,
+bool CRESTModel::WaterBalance(float stepHours,
+                              std::vector<float> *precip,
                               std::vector<float> *pet,
                               std::vector<float> *fastFlow,
                               std::vector<float> *slowFlow,
-                              std::vector<float> *soilMoisture) {
+                              std::vector<float> *baseFlow,
+                              std::vector<float> *soilMoisture,
+                              std::vector<float> *groundwater) {
 
   size_t numNodes = nodes->size();
 
 #if _OPENMP
   //#pragma omp parallel for
 #endif
+
   for (size_t i = 0; i < numNodes; i++) {
     GridNode *node = &nodes->at(i);
     CRESTGridNode *cNode = &(crestNodes[i]);
     WaterBalanceInt(node, cNode, stepHours, precip->at(i), pet->at(i),
-                    &(fastFlow->at(i)), &(slowFlow->at(i)));
+                    &(fastFlow->at(i)), &(slowFlow->at(i)),
+                    &(baseFlow->at(i)));
     soilMoisture->at(i) =
         cNode->states[STATE_CREST_SM] * 100.0 / cNode->params[PARAM_CREST_WM];
   }
@@ -125,7 +131,7 @@ bool CRESTModel::WaterBalance(float stepHours, std::vector<float> *precip,
 
 void CRESTModel::WaterBalanceInt(GridNode *node, CRESTGridNode *cNode,
                                  float stepHours, float precipIn, float petIn,
-                                 float *fastFlow, float *slowFlow) {
+                                 float *fastFlow, float *slowFlow, float *baseFlow) {
   double precip = precipIn * stepHours; // precipIn is mm/hr, precip is mm
   double pet = petIn * stepHours;       // petIn in mm/hr, pet is mm
   double R = 0.0, Wo = 0.0;

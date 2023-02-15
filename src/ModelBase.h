@@ -20,7 +20,8 @@ public:
   virtual bool RunTimeStep(long index, float stepHours,
                            std::vector<float> *precip, std::vector<float> *pet,
                            std::vector<float> *discharge,
-                           std::vector<float> *soilMoisture) = 0;
+                           std::vector<float> *soilMoisture,
+                           std::vector<float> *groundwater) = 0;
   virtual bool IsLumped() = 0;
   virtual const char *GetName() = 0;
 };
@@ -35,11 +36,14 @@ public:
   virtual void InitializeStates(TimeVar *beginTime, char *statePath) = 0;
   virtual void SaveStates(TimeVar *currentTime, char *statePath,
                           GridWriterFull *gridWriter) = 0;
-  virtual bool WaterBalance(float stepHours, std::vector<float> *precip,
+  virtual bool WaterBalance(float stepHours,
+                            std::vector<float> *precip,
                             std::vector<float> *pet,
                             std::vector<float> *fastFlow,
-                            std::vector<float> *slowFlow,
-                            std::vector<float> *soilMoisture) = 0;
+                            std::vector<float> *interFlow,
+                            std::vector<float> *baseFlow,
+                            std::vector<float> *soilMoisture,
+                            std::vector<float> *groundwater) = 0;
   virtual bool IsLumped() = 0;
   virtual const char *GetName() = 0;
 };
@@ -53,11 +57,13 @@ public:
                   std::vector<FloatGrid *> *paramGrids) = 0;
   virtual void InitializeStates(TimeVar *beginTime, char *statePath,
                                 std::vector<float> *fastFlow,
-                                std::vector<float> *slowFlow) = 0;
+                                std::vector<float> *interFlow,
+                                std::vector<float> *baseFlow) = 0;
   virtual void SaveStates(TimeVar *currentTime, char *statePath,
                           GridWriterFull *gridWriter) = 0;
   virtual bool Route(float stepHours, std::vector<float> *fastFlow,
-                     std::vector<float> *slowFlow,
+                     std::vector<float> *interFlow,
+                     std::vector<float> *baseFlow,
                      std::vector<float> *discharge) = 0;
   virtual float GetMaxSpeed() = 0;
   virtual float SetObsInflow(long index, float inflow) = 0;

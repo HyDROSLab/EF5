@@ -84,10 +84,11 @@ private:
   TimeVar currentTime, currentTimePrecip, currentTimeQPF, currentTimePET,
       currentTimeTemp, currentTimeTempF, beginTime, endTime, warmEndTime,
       beginLRTime;
+    std::vector<TimeVar*> currentTimes, beginTimes, endTimes;
   DatedName *precipFile, *qpfFile, *petFile, *tempFile, *tempFFile,
       currentTimeText, currentTimeTextOutput;
-  std::vector<float> currentFF, currentSF, currentQ, avgPrecip, avgPET, avgSWE,
-      currentSWE, avgT, avgSM, avgFF, avgSF, currentDepth;
+  std::vector<float> currentFF, currentSF, currentBF, currentQ, avgPrecip, avgPET, avgSWE,
+      currentSWE, avgT, avgSM,avgGW, avgFF, avgSF, avgBF, currentDepth;
   std::vector<FloatGrid *> paramGrids, paramGridsRoute, paramGridsSnow,
       paramGridsInundation;
   bool hasQPF, hasTempF, wantsDA;

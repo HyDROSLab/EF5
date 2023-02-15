@@ -6,6 +6,7 @@
 #endif
 #include "BasicGrids.h"
 #include "CRESTModel.h"
+#include "CRESTPhysModel.h"
 #include "GridWriterFull.h"
 #include "GriddedOutput.h"
 #include "HPModel.h"
@@ -112,13 +113,16 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
 
   // Initialize time information
   currentTime = *(task->GetTimeBegin());
+  currentTimes= *(task->GetTimeBegins());  // Leave for multi-event calibration if necessary
   currentTimePrecip = *(task->GetTimeBegin());
   currentTimeQPF = *(task->GetTimeBegin());
   currentTimePET = *(task->GetTimeBegin());
   currentTimeTemp = *(task->GetTimeBegin());
   currentTimeTempF = *(task->GetTimeBegin());
   beginTime = *(task->GetTimeBegin());
-  endTime = *(task->GetTimeEnd());
+  beginTimes= *(task->GetTimeBegins());  // Leave for multi-event calibration if necessary
+  endTime = *(task->GetTimeEnd());  // Leave for multi-event calibration if necessary
+  endTimes= *(task->GetTimeEnds());
   warmEndTime = *(task->GetTimeWarmEnd());
 
   // Initialize file name information
@@ -219,11 +223,13 @@ bool Simulator::InitializeBasic(TaskConfigSection *task) {
               "(Invalid gauge location?)");
     return false;
   }
-
   // Create the appropriate model
   switch (task->GetModel()) {
   case MODEL_CREST:
     wbModel = new CRESTModel();
+    break;
+  case MODEL_CRESTPHYS:
+    wbModel = new CRESTPHYSModel();
     break;
   case MODEL_HYMOD:
     wbModel = new HyMOD();
@@ -324,8 +330,10 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
   avgSWE.resize(gauges->size());
   avgT.resize(gauges->size());
   avgSM.resize(gauges->size());
+  avgGW.resize(gauges->size());
   avgFF.resize(gauges->size());
   avgSF.resize(gauges->size());
+  avgBF.resize(gauges->size());
 
   // Initialize forcing vectors & discharge storage vector
   currentPrecipSimu.resize(nodes.size());
@@ -353,6 +361,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
     }
     currentFF.resize(nodes.size());
     currentSF.resize(nodes.size());
+    currentBF.resize(nodes.size());
     currentQ.resize(nodes.size());
     currentSWE.resize(nodes.size());
     currentDepth.resize(nodes.size());
@@ -360,6 +369,7 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
     outputRP = false;
     currentFF.resize(lumpedNodes.size());
     currentSF.resize(lumpedNodes.size());
+    currentBF.resize(lumpedNodes.size());
     currentQ.resize(lumpedNodes.size());
     currentSWE.resize(lumpedNodes.size());
   }
@@ -377,8 +387,8 @@ bool Simulator::InitializeSimu(TaskConfigSection *task) {
         // setvbuf(gaugeOutputs[i], NULL, _IONBF, 0);
         fprintf(gaugeOutputs[i], "%s",
                 "Time,Discharge(m^3 s^-1),Observed(m^3 s^-1),Precip(mm "
-                "h^-1),PET(mm h^-1),SM(%),Fast Flow(mm*1000),Slow "
-                "Flow(mm*1000)");
+                "h^-1),PET(mm h^-1),SM(%),Groundwater (mm),Fast Flow(mm*1000),Slow "
+                "Flow(mm*1000),Base Flow(mm*1000)");
         if (sModel) {
           fprintf(gaugeOutputs[i], "%s", ",Temperature (C),SWE(mm)");
         }
@@ -513,11 +523,13 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
   if (!wbModel->IsLumped()) {
     currentFF.resize(nodes.size());
     currentSF.resize(nodes.size());
+    currentBF.resize(nodes.size());
     currentQ.resize(nodes.size());
     currentSWE.resize(nodes.size());
   } else {
     currentFF.resize(lumpedNodes.size());
     currentSF.resize(lumpedNodes.size());
+    currentBF.resize(lumpedNodes.size());
     currentQ.resize(lumpedNodes.size());
     currentSWE.resize(lumpedNodes.size());
   }
@@ -551,6 +563,9 @@ bool Simulator::InitializeCali(TaskConfigSection *task) {
     case MODEL_CREST:
       caliWBModels[i] = new CRESTModel();
       break;
+    case MODEL_CRESTPHYS:
+      caliWBModels[i] = new CRESTPHYSModel();
+      break;      
     case MODEL_HYMOD:
       caliWBModels[i] = new HyMOD();
       break;
@@ -970,15 +985,15 @@ void Simulator::SaveTSOutput() {
     GaugeConfigSection *gauge = gauges->at(i);
     if (gaugeOutputs[i]) {
       if (std::isfinite(currentQ[gauge->GetGridNodeIndex()])) {
-        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(), currentQ[gauge->GetGridNodeIndex()],
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+              avgSM[i],  avgGW[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       } else {
-        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.4f,%.4f",
+        fprintf(gaugeOutputs[i], "%s,%.2f,nan,%.2f,%.2f,%.2f,%.2f,%.4f,%.4f,%.4f",
               currentTimeText.GetName(),
               gauge->GetObserved(&currentTime), avgPrecip[i], avgPET[i],
-              avgSM[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0);
+              avgSM[i], avgGW[i], avgFF[i] * 1000.0, avgSF[i] * 1000.0, avgBF[i]*1000.0);
       }
       if (sModel) {
         fprintf(gaugeOutputs[i], ",%.2f,%.2f", avgT[i], avgSWE[i]);
@@ -1199,6 +1214,12 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   int currentYear = -1;
   int indexYear = -1;
 
+  // 2019-04: output gridded surface runoff ---------------------------------
+  std::vector<float> currentFF_o;
+
+  currentFF_o.resize(currentFF.size());
+  // ---------------------------------
+
   // Initialize TempReader
   if (sModel) {
     tempReader.ReadDEM(tempSec->GetDEM());
@@ -1254,7 +1275,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     qpfAccum.resize(nodes.size());
     savePrecip = true;
   }
-
+  // printf("Got here before initializing water balance models...");
   // Initialize our models
   // NORMAL_LOGF("%s\n", "Got here!4");
   wbModel->InitializeModel(&nodes, &fullParamSettings, &paramGrids);
@@ -1277,7 +1298,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   if (useStates) {
     wbModel->InitializeStates(&currentTime, statePath);
     if (rModel) {
-      rModel->InitializeStates(&currentTime, statePath, &currentFF, &currentSF);
+      rModel->InitializeStates(&currentTime, statePath, &currentFF, &currentSF, &currentBF);
     }
     if (sModel) {
       sModel->InitializeStates(&currentTime, statePath);
@@ -1286,10 +1307,10 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     for (size_t i = 0; i < currentFF.size(); i++) {
       currentFF[i] = 0.0;
       currentSF[i] = 0.0;
+      currentBF[i]= 0.0;
       currentSWE[i] = 0.0;
     }
   }
-
   // Set up stuff for peak tracking here, if needed
   if (trackPeaks) {
     numYears = GetNumSimulatedYears();
@@ -1305,12 +1326,14 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   // Hard coded RP counting
   std::vector<float> count2, rpGrid, rpMaxGrid, maxGrid;
   std::vector<float> SM;
+  std::vector<float> GW;
   std::vector<float> dailyMaxQ, dailyMinSM, dailyMaxQHour;
   count2.resize(currentFF.size());
   rpGrid.resize(currentFF.size());
   rpMaxGrid.resize(currentFF.size());
   maxGrid.resize(currentFF.size());
   SM.resize(currentFF.size());
+  GW.resize(currentFF.size());
 
   for (size_t i = 0; i < currentFF.size(); i++) {
     count2[i] = 0.0;
@@ -1320,7 +1343,9 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
     currentFF[i] = 0.0;
     currentSF[i] = 0.0;
     currentQ[i] = 0.0;
+    currentBF[i]=0.0;
   }
+  // printf("After initialization...\n");
 
 #if _OPENMP
   double timeTotal = 0.0, timeCount = 0.0;
@@ -1331,6 +1356,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
   // Here we load the input forcings & actually run the model
   for (currentTime.Increment(timeStep); currentTime <= endTime;
        currentTime.Increment(timeStep)) {
+
 #if _OPENMP
 #ifndef _WIN32
     double beginTime = omp_get_wtime();
@@ -1364,20 +1390,47 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
         currentPrecip = &currentPrecipSnow;
       }
     }
-
+    // printf("Got here before executing water balance...\n"); done
     // Integrate the models for this timestep
     if (!preloadedForcings) {
       wbModel->WaterBalance(stepHoursReal, currentPrecip, &currentPETSimu,
-                            &currentFF, &currentSF, &SM);
+                            &currentFF, &currentSF, &currentBF, &SM, &GW);
     } else {
       wbModel->WaterBalance(stepHoursReal, &(currentPrecipCali[tsIndex]),
-                            &(currentPETCali[tsIndex]), &currentFF, &currentSF,
-                            &SM);
+                            &(currentPETCali[tsIndex]), &currentFF, &currentSF, &currentBF,
+                            &SM, &GW);
     }
+    if (griddedOutputs && ((griddedOutputs & OG_RUNOFF)==OG_RUNOFF)) {
+      // 2021-04 Allen: output gridded surface runoff ---------------------------------
+      std::vector<float> _runoff;
+      _runoff.resize(currentFF.size());
+      for (size_t i = 0; i < currentFF.size(); i++) {
+        float val = currentFF[i] * 3600.0f;
+        _runoff[i] = val;
+      }
+      sprintf(buffer, "%s/runoff.%s.%s.tif", outputPath,
+              currentTimeTextOutput.GetName(), wbModel->GetName());
+      gridWriter.WriteGrid(&nodes, &_runoff, buffer, false);
+    }
+
+    if (griddedOutputs && ((griddedOutputs & OG_SUBSURF) == OG_SUBSURF)) {
+      std::vector<float> _subsurface;
+      _subsurface.resize(currentSF.size());
+      for (size_t i = 0; i < currentSF.size(); i++) {
+          float val = currentSF[i] * 3600.0f;
+          _subsurface[i] = val;
+        }
+        sprintf(buffer, "%s/subrunoff.%s.%s.tif", outputPath,
+                currentTimeTextOutput.GetName(), wbModel->GetName());
+        gridWriter.WriteGrid(&nodes, &_subsurface, buffer, false);
+      }    
+
     if (outputTS) {
       gaugeMap.GaugeAverage(&nodes, &currentFF, &avgFF);
       gaugeMap.GaugeAverage(&nodes, &currentSF, &avgSF);
+      gaugeMap.GaugeAverage(&nodes, &currentBF, &avgBF);
     }
+
 
     if (rModel && wantsDA) {
       AssimilateData();
@@ -1388,7 +1441,8 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       double beginTimeR = omp_get_wtime();
 #endif
 #endif
-      rModel->Route(stepHoursReal, &currentFF, &currentSF, &currentQ);
+      rModel->Route(stepHoursReal, &currentFF, &currentSF, &currentBF, &currentQ);
+      // printf("After routing...\n");
 #if _OPENMP
 #ifndef _WIN32
       double endTimeR = omp_get_wtime();
@@ -1399,6 +1453,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
       for (size_t i = 0; i < currentFF.size(); i++) {
         currentFF[i] = 0.0;
         currentSF[i] = 0.0;
+        currentBF[i] = 0.0;
       }
     }
     if (saveStates && stateTime == currentTime) {
@@ -1434,6 +1489,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
 
       if (outputTS) {
         gaugeMap.GaugeAverage(&nodes, &SM, &avgSM);
+        gaugeMap.GaugeAverage(&nodes, &GW, &avgGW);
         if (!preloadedForcings) {
           gaugeMap.GaugeAverage(&nodes, currentPrecip, &avgPrecip);
           gaugeMap.GaugeAverage(&nodes, &currentPETSimu, &avgPET);
@@ -1497,12 +1553,18 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
           currentDepth[i] = val;
         }
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
-      }
+      }  
       if ((griddedOutputs & OG_SM) == OG_SM) {
         sprintf(buffer, "%s/sm.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &SM, buffer, false);
       }
+      if ((griddedOutputs & OG_GW) == OG_GW) {
+        sprintf(buffer, "%s/gw.%s.%s.tif", outputPath,
+                currentTimeTextOutput.GetName(), wbModel->GetName());
+        gridWriter.WriteGrid(&nodes, &GW, buffer, false);
+      }      
+      
       if (outputRP && ((griddedOutputs & OG_QRP) == OG_QRP)) {
         sprintf(buffer, "%s/rp.%s.%s.tif", outputPath,
                 currentTimeTextOutput.GetName(), wbModel->GetName());
@@ -1554,6 +1616,7 @@ void Simulator::SimulateDistributed(bool trackPeaks) {
                 currentTimeTextOutput.GetName(), wbModel->GetName());
         gridWriter.WriteGrid(&nodes, &currentDepth, buffer, false);
       }
+
     }
 
 #if _OPENMP
@@ -1717,6 +1780,7 @@ void Simulator::SimulateLumped() {
   size_t tsIndex = 0;
 
   std::vector<float> SM;
+  std::vector<float> GW;
   SM.resize(currentFF.size());
 
   // Initialize our model
@@ -1760,12 +1824,12 @@ void Simulator::SimulateLumped() {
       gaugeMap.GaugeAverage(&nodes, &currentPrecipSimu, &avgPrecip);
       gaugeMap.GaugeAverage(&nodes, &currentPETSimu, &avgPET);
 
-      wbModel->WaterBalance(timeStepHours, &avgPrecip, &avgPET, &currentFF,
-                            &currentSF, &SM);
+      wbModel->WaterBalance(timeStepHours, &avgPrecip, &avgPET, &currentFF, &currentBF,
+                            &currentSF, &SM, &GW);
     } else {
       wbModel->WaterBalance(timeStepHours, &(currentPrecipCali[tsIndex]),
-                            &(currentPETCali[tsIndex]), &currentFF, &currentSF,
-                            &SM);
+                            &(currentPETCali[tsIndex]), &currentFF, &currentSF, &currentBF,
+                            &SM, &GW);
     }
     // We only output after the warmup period is over
     if (warmEndTime <= currentTime) {
@@ -2052,8 +2116,8 @@ float Simulator::SimulateForCali(float *testParams) {
   WaterBalanceModel *runModel;
   RoutingModel *runRoutingModel;
   SnowModel *runSnowModel;
-  std::vector<float> currentFFCali, currentSFCali, currentQCali, simQCali,
-      SMCali, currentSWECali, currentPrecipSnow;
+  std::vector<float> currentFFCali, currentSFCali, currentBFCali, currentQCali, simQCali,
+      SMCali, GWCali, currentSWECali, currentPrecipSnow;
   TimeVar currentTimeCali;
   std::map<GaugeConfigSection *, float *> *currentWBParamSettings;
   std::map<GaugeConfigSection *, float *> *currentRParamSettings;
@@ -2105,10 +2169,12 @@ float Simulator::SimulateForCali(float *testParams) {
 
   currentFFCali.resize(currentFF.size());
   currentSFCali.resize(currentFF.size());
+  currentBFCali.resize(currentFF.size());
   currentQCali.resize(currentFF.size());
   currentSWECali.resize(currentFF.size());
   currentPrecipSnow.resize(currentFF.size());
   SMCali.resize(currentFF.size());
+  GWCali.resize(currentFF.size());
   simQCali.resize(simQ.size());
   avgPrecip.resize(gauges->size());
   avgPET.resize(gauges->size());
@@ -2136,10 +2202,10 @@ float Simulator::SimulateForCali(float *testParams) {
      gaugeMap.GaugeAverage(&nodes, petVec, &avgPET);
      printf("%f %f\n", precipVec->at(300), petVec->at(300));
      }*/
-    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali,
-                           &currentSFCali, &SMCali);
+    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentSFCali,
+                           &currentBFCali, &SMCali, &GWCali);
 
-    runRoutingModel->Route(timeStepHours, &currentFFCali, &currentSFCali,
+    runRoutingModel->Route(timeStepHours, &currentFFCali, &currentSFCali, &currentBFCali,
                            &currentQCali);
 
     if (warmEndTime <= currentTimeCali) {
@@ -2167,7 +2233,7 @@ float Simulator::SimulateForCali(float *testParams) {
 float *Simulator::SimulateForCaliTS(float *testParams) {
 
   WaterBalanceModel *runModel;
-  std::vector<float> currentFFCali, currentSFCali, SMCali;
+  std::vector<float> currentFFCali, currentSFCali, currentBFCali, SMCali, GWCali;
   float *simQCali;
   TimeVar currentTimeCali;
   std::map<GaugeConfigSection *, float *> *currentParamSettings;
@@ -2207,8 +2273,8 @@ float *Simulator::SimulateForCaliTS(float *testParams) {
     std::vector<float> *precipVec = &(currentPrecipCali[tsIndex]);
     std::vector<float> *petVec = &(currentPETCali[tsIndex]);
 
-    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali,
-                           &currentSFCali, &SMCali);
+    runModel->WaterBalance(timeStepHours, precipVec, petVec, &currentFFCali, &currentBFCali,
+                           &currentSFCali, &SMCali, &GWCali);
     if (warmEndTime <= currentTimeCali) {
       if (!runModel->IsLumped()) {
         simQCali[tsIndexWarm] = currentFFCali[caliGauge->GetGridNodeIndex()];

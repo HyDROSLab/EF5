@@ -23,6 +23,9 @@ const char *GriddedOutputText[] = {
     "maxthresholdexceedance",
     "maxthresholdexceedancep",
     "precipaccum",
+    "runoff",
+    "groundwater",
+    "subrunoff",
 };
 
 const int GriddedOutputFlags[] = {
@@ -45,4 +48,7 @@ const int GriddedOutputFlags[] = {
     OG_MAXTHRES,
     OG_MAXTHRESP,
     OG_PRECIPACCUM,
+    OG_RUNOFF,
+    OG_GW,
+    OG_SUBSURF
 };

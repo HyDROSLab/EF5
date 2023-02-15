@@ -21,3 +21,4 @@ depcomp
 stamp-h1
 *.cache/*
 src/.*
+EF5-US-Parameters-1.0.0/*
