@@ -295,13 +295,29 @@ iwu=50.0
   b=1.0
   im=0.01
   ke=1.0
+  ksoil=0.1
   fc=1.00
   iwu=50.0
   igw=25.0
   hmaxaq=1.0
   gwc=1.0
   gwe=1.0
-</pre>
+</pre><p class="prec">Example CrestPhysParamSet Block</p>
+<span class="namec">GAUGE:</span> This is the name of the gauge location block for which the parameters that follow it will be applied.<br />
+<span class="namec">WM:</span> The maximum soil water capacity (depth integrated pore space) of the soil layer. (mm)<br />
+<span class="namec">B:</span> The exponent of the variable infiltration curve.<br />
+<span class="namec">IM:</span> The impervious area ratio. (% between 0 and 100)<br />
+<span class="namec">KE:</span> The multiplier to convert between input PET and local actual ET.<br />
+<span class="namec">KSOIL:</span> The coefficient to drain soil moisture into groundwater (0-1)<br />
+<span class="namec">FC:</span> The soil saturated hydraulic conductivity (Ksat). (mm hr<sup>-1</sup>) <br />
+<span class="namec">IWU:</span> The initial value of soil water. This is a percentage of the WM. (% between 0 and 100)<br />
+<span class="namec">IGW:</span> The initial value of groundwater. This is a percentage of the HMAXAQ. (% between 0 and 100)<br />
+<span class="namec">HMAXAQ:</span> The maximum groundwater depth (m) <br />
+<span class="namec">GWC:</span> The coefficient (multiplier) to partition groundwater and baseflow<br />
+<span class="namec">GWE:</span> The exponent to partition groundwater and baseflow<br />
+<br />
+
+
 					<li><a name="paramsac">SAC-SMA Parameter Set</a></li>
           <pre>
 

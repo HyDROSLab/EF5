@@ -292,8 +292,18 @@ void CRESTPHYSModel::WaterBalanceInt(GridNode *node, CRESTPHYSGridNode *cNode,
     cNode->actET = resET+ExcessET + precip;
   }
 
+  // Modified by Allen 02/14/23, we drain soil moisture based on a rate factor KSOIL
+  double soil2gw=Wo*cNode->params[PARAM_CRESTPHYS_KSOIL];
+  if (Wo>=soil2gw){
+    Wo-= soil2gw;
+  }
+  else{
+    Wo = 0.0;
+    soil2gw=Wo;
+  }
+
   cNode->states[STATE_CRESTPHYS_SM] = Wo;
-  cNode->states[STATE_CRESTPHYS_GW] += cNode->excess[CRESTPHYS_LAYER_BASEFLOW];
+  cNode->states[STATE_CRESTPHYS_GW] += (cNode->excess[CRESTPHYS_LAYER_BASEFLOW]+soil2gw);
   // printf("groundwater 2: %f\n", cNode->states[STATE_CRESTPHYS_GW]);
   // Add Overland Excess Water to fastFlow
   *fastFlow += (cNode->excess[CRESTPHYS_LAYER_OVERLAND] / (stepHours * 3600.0f));
